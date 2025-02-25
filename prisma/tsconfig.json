@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "CommonJS",
+    "outDir": "../dist",    // Output compiled files to the parent dist folder
+    "esModuleInterop": true,
+    "strict": true
+  },
+  "include": [
+    "prismaClient.ts",      // Prisma client initialization
+    "schema.prisma"         // Prisma schema file
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

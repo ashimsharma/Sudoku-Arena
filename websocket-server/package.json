@@ -1,0 +1,17 @@
+{
+  "name": "websocket-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "tsc -b && node dist/index.js"
+  },
+  "dependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/ws": "^8.5.14",
+    "http": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.1"
+  }
+}
