@@ -27,6 +27,5 @@ export class Game{
     constructor(creatingPlayer: WebSocket, params: any){
         this.player1 = creatingPlayer;
         this.options = params.options;
-        console.log("I ran");
     }   
 }
