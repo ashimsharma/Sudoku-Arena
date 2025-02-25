@@ -1,5 +1,6 @@
 import { WebSocket } from "ws";
 import uuid from "uuid";
+import prisma from "@prisma/db";
 
 type Options = {
     difficulty: Difficulty,
@@ -26,5 +27,6 @@ export class Game{
     constructor(creatingPlayer: WebSocket, params: any){
         this.player1 = creatingPlayer;
         this.options = params.options;
+        console.log("I ran");
     }   
 }

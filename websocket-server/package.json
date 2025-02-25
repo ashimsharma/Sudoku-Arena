@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "tsc -b && node dist/index.js"
+    "start": "tsc -b && node dist/websocket-server/src/index.js"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.9",

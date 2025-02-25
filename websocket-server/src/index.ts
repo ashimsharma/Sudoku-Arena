@@ -2,9 +2,9 @@ import { WebSocketServer } from "ws";
 import { CREATE_ROOM } from "./messages/messages";
 import { Game } from "./game/Game";
 import { gameManager } from "./game/GameManager";
-import jwt from "jsonwebtoken";
 
-const wss = new WebSocketServer({ port: 3000 });
+const wss = new WebSocketServer({ port: 8080 });
+
 export const userSocketMap = new Map();
 
 wss.on("connection", function connection(ws, req) {
@@ -27,7 +27,6 @@ wss.on("connection", function connection(ws, req) {
   });
 });
 
-function getCookie(cookies: string, name: string) {
-  const match = cookies.match(new RegExp("(^| )" + name + "=([^;]+)"));
-  return match ? match[2] : null;
-}
+wss.on('listening', () => {
+  console.log("Server Listening");
+})

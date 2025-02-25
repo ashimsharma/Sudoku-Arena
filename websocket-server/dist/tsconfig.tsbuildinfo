@@ -1,0 +1,1 @@
+{"root":["../src/index.ts","../src/db/index.ts","../src/game/game.ts","../src/game/gamemanager.ts","../src/messages/messages.ts","../../prisma/db/index.ts"],"version":"5.6.3"}
