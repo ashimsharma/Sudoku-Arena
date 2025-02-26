@@ -41,7 +41,8 @@ function githubLoginCallback(req: Request, res: Response, next: NextFunction) {
   .cookie("jwt", token, options)
   .json(
     {
-        message: "Authentication Successfull"
+        message: "Authentication Successfull",
+        token
     }
   )
 }

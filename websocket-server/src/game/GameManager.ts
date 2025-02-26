@@ -14,6 +14,11 @@ class GameManager{
     remove(gameId: string){
         this.games = this.games.filter(game => game.gameId === gameId);
     }
+
+    findGame(gameId: string): Game{
+        const game = this.games.filter(game => game.gameId === gameId)[0];
+        return game;
+    }
 }
 
 export const gameManager = new GameManager();

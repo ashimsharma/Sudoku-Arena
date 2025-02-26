@@ -22,19 +22,19 @@ model User {
 }
 
 model Game {
-  id        String       @id @default(uuid())
-  players   GamePlayer[]
+  id      String       @id @default(uuid())
+  players GamePlayer[]
 
-  options Json
-  
-  createdAt DateTime     @default(now())
-  updateAt  DateTime     @updatedAt
+  options   Json
+  gameData  Json?
+
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
 }
 
 model GamePlayer {
-  id    String      @id @default(uuid())
-  score Int
-  role  PlayerRoles
+  id    String @id @default(uuid())
+  score Int    @default(0)
 
   game   Game   @relation(fields: [gameId], references: [id])
   gameId String
