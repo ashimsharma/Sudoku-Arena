@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/auth/auth.ts","./src/db/index.ts","./src/game/game.ts","./src/game/gamemanager.ts","./src/messages/messages.ts","./src/store/connections.ts"],"version":"5.6.3"}

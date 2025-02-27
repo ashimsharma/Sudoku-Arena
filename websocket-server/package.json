@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "tsc -b && node dist/websocket-server/src/index.js"
+    "start": "tsc -b && node dist/index.js"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
