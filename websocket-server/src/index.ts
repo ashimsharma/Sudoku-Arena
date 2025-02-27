@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import { CREATE_ROOM, JOIN_ROOM } from "./messages/messages";
+import { CREATE_ROOM, INIT_GAME, JOIN_ROOM } from "./messages/messages";
 import { Game } from "./game/Game";
 import { gameManager } from "./game/GameManager";
 import { createServer } from "http";
@@ -62,6 +62,10 @@ wss.on("connection", function connection(ws, req) {
             // Handle game not found
             ws.send(JSON.stringify({ message: "Game not found!" }));
           }
+          break;
+        case INIT_GAME:
+          const game = gameManager.findGame(params.gameId);
+          game.initGame(params.gameId, ws);
           break;
         default:
           // Handle other message types if necessary
