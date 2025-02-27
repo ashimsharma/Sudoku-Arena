@@ -1,5 +1,5 @@
 import { WebSocket } from "ws";
-import prisma from "@prisma/db";
+import prisma from "../db/index";
 import { connectionUserIds } from "../store/connections";
 
 type Options = {
@@ -71,8 +71,10 @@ export class Game{
                     }
                 }
             )
+
+            this.joiner?.socket.send(JSON.stringify({message: "Room joined successfully."}))
         } catch (error) {
-            
+            this.joiner?.socket.send(JSON.stringify({message: "Failed to join Room."}))   
         }
     }
 

@@ -7,9 +7,11 @@
     "start": "tsc -b && node dist/websocket-server/src/index.js"
   },
   "dependencies": {
+    "@prisma/client": "^6.4.1",
     "dotenv": "^16.4.7",
     "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
+    "prisma": "^6.4.1",
     "uuid": "^11.1.0",
     "ws": "^8.18.1"
   },
