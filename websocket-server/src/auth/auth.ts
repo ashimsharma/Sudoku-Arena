@@ -1,7 +1,7 @@
 import { IncomingMessage } from "http";
 import { parse } from "url";
 import jwt from "jsonwebtoken";
-import prisma from "../db/index";
+import {prisma} from "../db/index";
 import { JwtPayload } from "jsonwebtoken";
 
 interface DecodedToken extends JwtPayload {

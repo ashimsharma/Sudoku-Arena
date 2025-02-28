@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import { CREATE_ROOM, INIT_GAME, JOIN_ROOM } from "./messages/messages";
+import { CREATE_ROOM, INIT_GAME, JOIN_ROOM, NUMBER_ADDED } from "./messages/messages";
 import { Game } from "./game/Game";
 import { gameManager } from "./game/GameManager";
 import { createServer } from "http";
@@ -64,9 +64,12 @@ wss.on("connection", function connection(ws, req) {
           }
           break;
         case INIT_GAME:
-          const game = gameManager.findGame(params.gameId);
-          game.initGame(params.gameId, ws);
+          const startedGame = gameManager.findGame(params.gameId);
+          startedGame.initGame(params.gameId, ws);
           break;
+        case NUMBER_ADDED:
+          const numberAddedGame = gameManager.findGame(params.gameId);
+          numberAddedGame.verifyValue(ws, params.userId, params.value, params.index)
         default:
           // Handle other message types if necessary
           break;

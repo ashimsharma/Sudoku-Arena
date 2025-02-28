@@ -2,7 +2,6 @@ import { WebSocket } from "ws";
 import { prisma, GameStatus } from "../db/index";
 import { connectionUserIds } from "../store/connections";
 import { getSudoku } from "sudoku-gen";
-import { Prisma } from "@prisma/client";
 
 type Options = {
   difficulty: Difficulty;
@@ -20,26 +19,40 @@ export class Game {
   public gameId?: string;
   private creator: {
     id: string;
+    type: string;
     socket: WebSocket;
     gameStarted: boolean;
-    currentGameState?: (number | null)[];
+    currentGameState: (number | null)[];
+    mistakes: number;
+    correctAdditions: 0
+    percentageComplete: number;
   };
   private joiner?: {
     id: string;
+    type: string;
     socket: WebSocket;
     gameStarted: boolean;
-    currentGameState?: (number | null)[];
+    currentGameState: (number | null)[];
+    mistakes: number;
+    correctAdditions: number,
+    percentageComplete: number
   };
   private options: Options;
-  private initialGameState?: (number | null)[];
-  private solution?: number[];
+  private initialGameState: (number | null)[] = [];
+  private solution: number[] = [];
   private gameStarted: boolean = false;
+  private emptyCells: number = 0;
 
   constructor(creatingPlayer: WebSocket, params: any) {
     this.creator = {
       id: connectionUserIds.get(creatingPlayer),
+      type: "creator",
       socket: creatingPlayer,
       gameStarted: false,
+      currentGameState: [],
+      correctAdditions: 0,
+      mistakes: 0,
+      percentageComplete: 0
     };
 
     // Delete it from the global map after creating the game user.
@@ -104,8 +117,13 @@ export class Game {
 
     this.joiner = {
       id: connectionUserIds.get(joiningPlayer),
+      type: "joiner",
       socket: joiningPlayer,
       gameStarted: false,
+      currentGameState: [],
+      mistakes: 0,
+      percentageComplete: 0,
+      correctAdditions: 0
     };
 
     connectionUserIds.delete(joiningPlayer);
@@ -121,7 +139,11 @@ export class Game {
   initGame(gameId: string, socket: WebSocket) {
     const sudoku = getSudoku(this.options.difficulty);
     this.initialGameState = sudoku.puzzle.split("").map((data) => {
-      return this.isInteger(data) ? parseInt(data) : null;
+      if(this.isInteger(data)){
+        return parseInt(data);
+      }
+      this.emptyCells += 1;
+      return null;
     });
 
     this.solution = sudoku.solution.split("").map((data) => parseInt(data));
@@ -184,6 +206,8 @@ export class Game {
 
   async initGameInDB(gameId: string, userId: string) {
     try {
+      const user = userId === this.creator.id ? this.creator : this.joiner;
+
       await prisma.gamePlayer.update({
         where: {
           userId_gameId: {
@@ -194,6 +218,10 @@ export class Game {
         data: {
           gameData: {
             initialGameState: this.initialGameState,
+            solution: this.solution,
+            currentGameState: user?.currentGameState,
+            mistakes: user?.mistakes,
+            percentageComplete: user?.percentageComplete
           },
         },
       });
@@ -203,5 +231,142 @@ export class Game {
       console.log(error);
       return false;
     }
+  }
+
+  async verifyValue(
+    ws: WebSocket,
+    userId: string,
+    value: number,
+    index: number
+  ) {
+    try {
+      if (this.initialGameState[index] !== null) {
+        return;
+      }
+
+      const user = userId === this.creator.id ? this.creator : this.joiner;
+
+      (user !== undefined) && (user.currentGameState[index] = value);
+      
+      if (this.solution[index] !== value) {
+        user !== undefined && (user.mistakes += 1);
+        if (user?.mistakes === 3) {
+          user.socket.send(
+            JSON.stringify({
+              message: "You did 3 mistakes, You Lose.",
+            })
+          );
+        } else {
+          user?.socket.send(
+            JSON.stringify({
+              message: "Oops, its on the wrong position.",
+            })
+          );
+        }
+
+        if (user?.type === "creator" && user?.mistakes === 3) {
+          this.joiner?.socket.send(
+            JSON.stringify({
+              message: "Opponent did 3 mistakes, You win",
+            })
+          );
+        } else if (user?.type === "joiner" && user?.mistakes === 3) {
+          this.creator.socket.send(
+            JSON.stringify({
+              message: "Opponent did 3 mistakes, You win",
+            })
+          );
+        } else if (user?.type === "creator" && user?.mistakes < 3) {
+          this.joiner?.socket.send(
+            JSON.stringify({
+              message: "Opponent did a mistake",
+            })
+          );
+        } else if (user?.type === "joiner" && user?.mistakes < 3) {
+          this.creator.socket.send(
+            JSON.stringify({
+              message: "Opponent did a mistake",
+            })
+          );
+        }
+        return;
+      }
+
+      (user !== undefined) && (user.correctAdditions += 1);
+
+      let correctAdditions = (user !== undefined) ? user?.correctAdditions : null;
+
+      // Calculate how much percentage of the board is complete.
+
+      let percentageComplete = ((correctAdditions as number)/this.emptyCells) * 100;
+
+      (user !== undefined) && (user.percentageComplete = percentageComplete);
+
+      const isComplete = this.checkIfBoardComplete(user);
+
+      if (isComplete) {
+        user?.socket.send(
+          JSON.stringify({
+            message: "Board Complete.",
+            percentageComplete,
+            currentGameState: user?.currentGameState
+          })
+        );
+
+        if (user?.type === "creator") {
+          this.joiner?.socket.send(
+            JSON.stringify({
+              message: "Opponent Board Complete.",
+              percentageComplete
+            })
+          );
+        } else {
+          this.creator.socket.send(
+            JSON.stringify({
+              message: "Opponent Board Complete.",
+              percentageComplete
+            })
+          );
+        }
+
+        return;
+      }
+
+      user?.socket.send(
+        JSON.stringify({
+          message: "Correct Number.",
+          percentageComplete,
+          currentGameState: user?.currentGameState
+        })
+      );
+
+      if (user?.type === "creator") {
+        this.joiner?.socket.send(
+          JSON.stringify({
+            message: "Opponent Correct Number.",
+            percentageComplete
+          })
+        );
+      } else {
+        this.creator.socket.send(
+          JSON.stringify({
+            message: "Opponent Correct Number.",
+            percentageComplete
+          })
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  checkIfBoardComplete(user: any) {
+    if (
+      JSON.stringify(user?.currentGameState) === JSON.stringify(this.solution)
+    ) {
+      return true;
+    }
+
+    return false;
   }
 }
