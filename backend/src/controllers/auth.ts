@@ -33,18 +33,14 @@ function githubLoginCallback(req: Request, res: Response, next: NextFunction) {
   const options: CookieOptions = {
     httpOnly: true,
     secure: true,
-    maxAge: 2 * 24 * 60 * 60 * 1000
+    maxAge: 2 * 24 * 60 * 60 * 1000,
+    sameSite: "none"
   }
   
   res
-  .status(200)
   .cookie("jwt", token, options)
-  .json(
-    {
-        message: "Authentication Successfull",
-        token
-    }
-  )
+
+  res.redirect((process.env.CLIENT_URL as string))
 }
 
 function googleLogin(req: Request, res: Response, next: NextFunction){
@@ -71,17 +67,23 @@ function googleLoginCallback(req: Request, res: Response, next: NextFunction){
   const options: CookieOptions = {
     httpOnly: true,
     secure: true,
-    maxAge: 2 * 24 * 60 * 60 * 1000
+    maxAge: 2 * 24 * 60 * 60 * 1000,
+    sameSite: "none"
   }
   
   res
-  .status(200)
   .cookie("jwt", token, options)
-  .json(
+
+  res.redirect((process.env.CLIENT_URL as string))
+}
+
+function loginFailed(req: Request, res: Response){
+  res.status(401).json(
     {
-        message: "Authentication Successfull"
+      success: false,
+      message: "Login Failed"
     }
   )
 }
 
-export { githubLogin, githubLoginCallback, googleLogin, googleLoginCallback };
+export { githubLogin, githubLoginCallback, googleLogin, googleLoginCallback, loginFailed };

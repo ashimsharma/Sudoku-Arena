@@ -1,12 +1,15 @@
-import './App.css'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { Login } from './components'
+import { Login, Home, Leaderboard } from './components'
+import AuthComponent from "./components/AuthComponent"
+
 function App() {
   return (
     <>
       <Router>
         <Routes>
-          <Route path='/login' element={<Login />}/>
+          <Route path='/login' element={<AuthComponent show={false} children={<Login />} /> }/>
+          <Route path='/' element={<AuthComponent show={true} children={<Home />} /> }/>
+          <Route path='/leaderboard' element={<AuthComponent show={true} children={<Leaderboard />} /> }/>
         </Routes>
       </Router>
     </>
