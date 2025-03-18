@@ -1,38 +1,52 @@
 import { IncomingMessage } from "http";
 import { parse } from "url";
 import jwt from "jsonwebtoken";
-import {prisma} from "../db/index";
+import { prisma } from "../db/index";
 import { JwtPayload } from "jsonwebtoken";
 
 interface DecodedToken extends JwtPayload {
-  id: string;
+	id: string;
 }
 
 export const authenticate = async (request: IncomingMessage) => {
-  const { token } = parse(request.url as string, true).query;
+	const cookieHeader = request.headers.cookie;
 
-  if (!token) {
-    return { authenticated: false, message: "Token is missing" };
-  }
+	const cookies = parseCookies(cookieHeader);
 
-  try {
-    const decoded = jwt.verify(
-      token as string,
-      process.env.JWT_SECRET as string
-    ) as DecodedToken;
+  const token = cookies?.jwt;
 
-    const user = await prisma.user.findFirst({
-      where: {
-        id: decoded.id,
-      },
-    });
+	if (!token) {
+		return { success: false, message: "Token is missing" };
+	}
 
-    if (!user) {
-      return { authenticated: false, message: "Invalid or expired token" };
-    }
+	try {
+		const decoded = jwt.verify(
+			token as string,
+			process.env.JWT_SECRET as string
+		) as DecodedToken;
 
-    return { authenticated: true, id: decoded.id };
-  } catch (error) {
-    return { authenticated: false, message: "Invalid or expired token" };
-  }
+		const user = await prisma.user.findFirst({
+			where: {
+				id: decoded.id,
+			},
+		});
+
+		if (!user) {
+			return {
+				authenticated: false,
+				message: "Invalid or expired token",
+			};
+		}
+
+		return { authenticated: true, id: decoded.id };
+	} catch (error) {
+		return { authenticated: false, message: "Invalid or expired token" };
+	}
+};
+
+const parseCookies = (cookies: string | undefined) => {
+	if (!cookies) return {};
+	return Object.fromEntries(
+		cookies.split(";").map((cookie) => cookie.trim().split("="))
+	);
 };

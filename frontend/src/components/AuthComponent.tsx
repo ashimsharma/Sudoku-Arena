@@ -1,5 +1,4 @@
-import { Navbar } from "."
-import {Footer} from "."
+import { Navbar, Footer } from "."
 
 type AuthComponentOptions = {
     show: Boolean,

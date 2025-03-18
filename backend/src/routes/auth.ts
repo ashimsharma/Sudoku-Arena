@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { githubLogin, githubLoginCallback, googleLogin, googleLoginCallback, loginFailed } from "../controllers/auth";
-import passport from "passport";
+import passport, { authenticate } from "passport";
 
 const authRouter = Router();
 
@@ -10,6 +10,7 @@ authRouter.route("/github/callback").get(passport.authenticate("github", { sessi
 authRouter.route("/google").get(googleLogin);
 authRouter.route("/google/callback").get(passport.authenticate("google", { session: false, failureRedirect: `/login/failed` }), googleLoginCallback);
 
+authRouter.route("/check-auth").get();
 
 authRouter.get("/login/failed", loginFailed);
 

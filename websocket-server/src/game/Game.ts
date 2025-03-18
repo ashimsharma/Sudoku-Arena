@@ -2,6 +2,7 @@ import { WebSocket } from "ws";
 import { prisma, GameStatus } from "../db/index";
 import { connectionUserIds } from "../store/connections";
 import { getSudoku } from "sudoku-gen";
+import { ROOM_CREATE_FAILED, ROOM_CREATED, ROOM_JOIN_FAILED, ROOM_JOINED } from "../messages/messages";
 
 type Options = {
   difficulty: Difficulty;
@@ -58,7 +59,7 @@ export class Game {
     // Delete it from the global map after creating the game user.
     connectionUserIds.delete(creatingPlayer);
 
-    this.options = params.options;
+    this.options = params;
     this.createGameInDB();
   }
 
@@ -81,11 +82,11 @@ export class Game {
       });
 
       this.creator.socket.send(
-        JSON.stringify({ message: "Room created successfully." })
+        JSON.stringify({ message: ROOM_CREATED, room_Id: createdGame.id  })
       );
     } catch (error) {
       this.creator.socket.send(
-        JSON.stringify({ message: "Failed to create Room." })
+        JSON.stringify({ message: ROOM_CREATE_FAILED })
       );
     }
   }
@@ -100,18 +101,18 @@ export class Game {
       });
 
       this.joiner?.socket.send(
-        JSON.stringify({ message: "Room joined successfully." })
+        JSON.stringify({ message: ROOM_JOINED })
       );
     } catch (error) {
       this.joiner?.socket.send(
-        JSON.stringify({ message: "Failed to join Room." })
+        JSON.stringify({ message: ROOM_JOIN_FAILED })
       );
     }
   }
 
   joinGame(joiningPlayer: WebSocket) {
     if (connectionUserIds.get(joiningPlayer) === this.creator.id) {
-      joiningPlayer.send(JSON.stringify("Failed to join Room."));
+      joiningPlayer.send(JSON.stringify({ message: ROOM_JOIN_FAILED }));
       return;
     }
 
