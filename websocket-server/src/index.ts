@@ -38,6 +38,8 @@ server.on("upgrade", async (request, socket, head) => {
 	});
 });
 
+let count = 1;
+
 wss.on("connection", function connection(ws, req) {
 	ws.send(
 		JSON.stringify({

@@ -5,5 +5,6 @@ import Footer from "./Footer";
 import Leaderboard from "./Leaderboard";
 import Game from "./Game";
 import CreateRoomModal from "./CreateRoomModal";
+import GameRoom from "./GameRoom";
 
-export {Login, Home, Navbar, Footer, Leaderboard, Game, CreateRoomModal};
+export {Login, Home, Navbar, Footer, Leaderboard, Game, CreateRoomModal, GameRoom};

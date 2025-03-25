@@ -1,59 +1,90 @@
 import { useEffect, useState } from "react";
 import { HiArrowLeft } from "react-icons/hi"; // Importing the Back Arrow Icon
 import { useNavigate } from "react-router-dom";
-import useSocket from "../hooks/useSocket";
-import { ROOM_CREATED } from "../messages/messages";
+import { CREATE_ROOM, ROOM_CREATED } from "../messages/messages";
 import CreateRoomModal from "./CreateRoomModal";
+import { open } from "../redux/websocket/websocketSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 const Game = () => {
-	const socket = useSocket();
 	const [modalOpened, setModalOpened] = useState(false);
+	const dispatch = useDispatch();
+	let socket: null | WebSocket;
+
+	const navigate = useNavigate();
 
 	useEffect(() => {
-		socket.addEventListener("open", () => {
-			socket.send(JSON.stringify({ message: "Connection Established" }));
-		});
+		dispatch(open());
 
-		socket.addEventListener("error", (err) => {
+		socket = useSelector((state: any) => state.socket);
+
+		if (!socket) return; 
+
+		const handleOpen = (event: Event) => {
+			console.log(event);
+		};
+
+		const handleError = (err: Event) => {
 			console.log(err);
-		});
+		};
 
-		socket.addEventListener("message", (event) => {
-			const message = event.data.message;
+		const handleMessage = (event: MessageEvent) => {
+			const message = JSON.parse(event.data).message;
 
 			switch (message) {
 				case ROOM_CREATED:
-					navigate("/game-room", {
-						state: {
-							socket: socket,
-							roomId: event.data.roomId,
-						},
-					});
+					const roomId = JSON.parse(event.data).roomId;
+					if (roomId) {
+						navigate("/game/game-room", {
+							state: {
+								roomId,
+							},
+						});
+					}
+					break;
+				default:
 					break;
 			}
-		});
-	}, []);
+		};
 
-	const navigate = useNavigate();
+		socket.addEventListener("open", handleOpen);
+		socket.addEventListener("error", handleError);
+		socket.addEventListener("message", handleMessage);
+	}, [navigate]); 
 
 	const back = () => {
 		navigate("/");
 	};
 
-	const openModal = async () => {
+	const openModal = () => {
 		setModalOpened(true);
 	};
 
 	const onClose = () => {
 		setModalOpened(false);
-	}
+	};
 
-	const onCreate = ({difficulty, gameType}: {difficulty: string, gameType: string}) => {
+	const onCreate = ({
+		difficulty,
+		gameType,
+	}: {
+		difficulty: string;
+		gameType: string;
+	}) => {
 		setModalOpened(false);
-		console.log(difficulty);
-		console.log(gameType);
 
-	}
+		if (socket) {
+			socket.send(
+				JSON.stringify({
+					type: CREATE_ROOM,
+					params: {
+						difficulty,
+						gameType,
+					},
+				})
+			);
+		}
+	};
 
 	return (
 		<div className="flex justify-center items-center min-h-screen bg-gray-900 p-4 relative">
@@ -74,7 +105,10 @@ const Game = () => {
 				</p>
 
 				<div className="mt-6 flex flex-col gap-4">
-					<button className="bg-red-500 hover:bg-red-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg" onClick={openModal}>
+					<button
+						className="bg-red-500 hover:bg-red-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg"
+						onClick={openModal}
+					>
 						Create Room
 					</button>
 					<button className="bg-gray-700 hover:bg-gray-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg">
@@ -82,7 +116,9 @@ const Game = () => {
 					</button>
 				</div>
 			</div>
-			{modalOpened && <CreateRoomModal onClose={onClose} onCreate={onCreate}/>}
+			{modalOpened && (
+				<CreateRoomModal onClose={onClose} onCreate={onCreate} />
+			)}
 		</div>
 	);
 };
