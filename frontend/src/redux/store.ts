@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import userReducer from './websocketSlice.ts';
+import userReducer from './gameSlice.ts';
 
 const store = configureStore({
     reducer: {

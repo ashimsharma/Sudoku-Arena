@@ -1,56 +1,22 @@
 import { useEffect, useState } from "react";
-import { HiArrowLeft } from "react-icons/hi"; // Importing the Back Arrow Icon
+import { HiArrowLeft } from "react-icons/hi"; 
 import { useNavigate } from "react-router-dom";
-import { CREATE_ROOM, ROOM_CREATED } from "../messages/messages";
 import CreateRoomModal from "./CreateRoomModal";
-import { open } from "../redux/websocket/websocketSlice";
-import { useDispatch, useSelector } from "react-redux";
+import { getSocket } from "../config/socket.config";
 
 const Game = () => {
 	const [modalOpened, setModalOpened] = useState(false);
-	const dispatch = useDispatch();
-	let socket: null | WebSocket;
-
-	const navigate = useNavigate();
+	const [socket, setSocket] = useState<WebSocket | null>(null);
 
 	useEffect(() => {
-		dispatch(open());
+		try {
+			setSocket(getSocket());
+		} catch (error) {
+			console.log(error);
+		}
+	}, [])
 
-		socket = useSelector((state: any) => state.socket);
-
-		if (!socket) return; 
-
-		const handleOpen = (event: Event) => {
-			console.log(event);
-		};
-
-		const handleError = (err: Event) => {
-			console.log(err);
-		};
-
-		const handleMessage = (event: MessageEvent) => {
-			const message = JSON.parse(event.data).message;
-
-			switch (message) {
-				case ROOM_CREATED:
-					const roomId = JSON.parse(event.data).roomId;
-					if (roomId) {
-						navigate("/game/game-room", {
-							state: {
-								roomId,
-							},
-						});
-					}
-					break;
-				default:
-					break;
-			}
-		};
-
-		socket.addEventListener("open", handleOpen);
-		socket.addEventListener("error", handleError);
-		socket.addEventListener("message", handleMessage);
-	}, [navigate]); 
+	const navigate = useNavigate();
 
 	const back = () => {
 		navigate("/");
@@ -73,20 +39,12 @@ const Game = () => {
 	}) => {
 		setModalOpened(false);
 
-		if (socket) {
-			socket.send(
-				JSON.stringify({
-					type: CREATE_ROOM,
-					params: {
-						difficulty,
-						gameType,
-					},
-				})
-			);
-		}
+		console.log(difficulty);
+		console.log(gameType);
 	};
 
 	return (
+		!socket ? <p>Loading...</p> : 
 		<div className="flex justify-center items-center min-h-screen bg-gray-900 p-4 relative">
 			<button
 				className="absolute top-6 left-6 flex items-center text-white hover:text-gray-400 transition-all duration-300"

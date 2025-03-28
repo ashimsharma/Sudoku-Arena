@@ -86,4 +86,17 @@ function loginFailed(req: Request, res: Response){
   )
 }
 
-export { githubLogin, githubLoginCallback, googleLogin, googleLoginCallback, loginFailed };
+function isAuthenticated(req: Request, res: Response){
+  if(req.user){
+    res.status(200)
+    .json(
+      {
+        statusCode: 200,
+        data: {user: req.user},
+        success: true,
+        message: "Autheticated."
+      }
+    )
+  }
+}
+export { githubLogin, githubLoginCallback, googleLogin, googleLoginCallback, loginFailed, isAuthenticated };

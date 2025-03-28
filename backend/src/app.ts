@@ -1,6 +1,6 @@
 import express from "express";
 import 'dotenv/config';
-import authRouter from "./routes/auth";
+import authRouter from "./routes/auth.routes";
 import passport from "./config/passport";
 import cors from 'cors';
 import cookieParser from "cookie-parser";
@@ -15,9 +15,6 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
-app.get("/", (req, res) => {
-    res.send("Hello World");
-});
 
 app.use(passport.initialize());
 

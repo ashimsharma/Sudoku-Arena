@@ -13,7 +13,7 @@ export const authenticate = async (request: IncomingMessage) => {
 
 	const cookies = parseCookies(cookieHeader);
 
-  const token = cookies?.jwt;
+	const token = cookies?.jwt;
 
 	if (!token) {
 		return { success: false, message: "Token is missing" };
