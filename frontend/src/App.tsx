@@ -7,10 +7,13 @@ import {
 	GameRoom,
 } from "./components";
 import AuthComponent from "./components/AuthComponent";
+import { Provider } from "react-redux";
+import store from "./redux/store";
 
 function App() {
 	return (
 		<>
+			<Provider store={store}>
 			<Router>
 					<Routes>
 						<Route
@@ -44,6 +47,7 @@ function App() {
 						<Route path="/game/game-room" element={<GameRoom />} />
 					</Routes>
 			</Router>
+			</Provider>
 		</>
 	);
 }

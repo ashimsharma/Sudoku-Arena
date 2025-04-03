@@ -13,7 +13,7 @@ const initialState: InitialState = {
 }
 
 const gameSlice = createSlice({
-    name: 'userType',
+    name: 'game',
     initialState,
     reducers: {
         setGameId: (state, action) => {
@@ -25,5 +25,5 @@ const gameSlice = createSlice({
     },
 });
 
-export const { setGameId } = gameSlice.actions;
+export const { setGameId, setMe } = gameSlice.actions;
 export default gameSlice.reducer;

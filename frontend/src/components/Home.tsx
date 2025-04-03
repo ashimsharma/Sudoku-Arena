@@ -1,11 +1,13 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"
 import checkAuth from "../utils/authentication";
+import { useDispatch } from "react-redux";
+import { setUser } from "../redux/userSlice";
 
 export default function Home(){
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         (
@@ -13,11 +15,11 @@ export default function Home(){
                 const response = await checkAuth();
 
                 if(response){
-                    console.log(response);
+                    dispatch(setUser({user: response.data.data.user}))
                     setLoading(false);
                 }
                 else{
-                    navigate("/login")
+                    navigate("/login", {state: {from: "/"}})
                 }
             }
         )();
@@ -28,7 +30,7 @@ export default function Home(){
     }
 
     return (
-        loading ? <p>Loading... {loading}</p> : 
+        loading ? <p>Loading... </p> : 
         <div className="min-h-screen mx-5 text-white my-4">
             <div className="grid grid-cols-3 gap-10 min-h-full">
                 <div className="border rounded-md min-h-full flex justify-center items-center">Your Previous Games</div>
