@@ -19,14 +19,14 @@ export default function Home(){
                     setLoading(false);
                 }
                 else{
-                    navigate("/login", {state: {from: "/"}})
+                    navigate("/login")
                 }
             }
         )();
     }, []);
 
     const startGame = () => {
-        navigate("/game");
+        navigate("/game", {state: {from: "/"}});
     }
 
     return (

@@ -17,7 +17,6 @@ export const getSocket = () => {
 			throw new Error("Connection Failed.");
 		}
 	}
-	addListeners(socket);
 	return socket;
 };
 
@@ -27,13 +26,3 @@ export const closeSocket = () => {
 		socket = null;
 	}
 };
-
-const addListeners = (socket: WebSocket) => {
-	socket.addEventListener('open', () => {
-		
-	})
-
-	socket.addEventListener('message', () => {
-		
-	})
-}

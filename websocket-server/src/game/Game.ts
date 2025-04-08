@@ -82,11 +82,11 @@ export class Game {
       });
 
       this.creator.socket.send(
-        JSON.stringify({ message: ROOM_CREATED, room_Id: createdGame.id  })
+        JSON.stringify({ type: ROOM_CREATED, roomId: createdGame.id  })
       );
     } catch (error) {
       this.creator.socket.send(
-        JSON.stringify({ message: ROOM_CREATE_FAILED })
+        JSON.stringify({ type: ROOM_CREATE_FAILED })
       );
     }
   }

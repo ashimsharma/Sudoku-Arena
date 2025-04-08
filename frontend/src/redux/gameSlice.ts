@@ -21,6 +21,9 @@ const gameSlice = createSlice({
         },
         setMe: (state, action) => {
             state.me = action.payload.me;
+        },
+        setOpponent: (state, action) => {
+            state.opponent = action.payload.opponent;
         }
     },
 });

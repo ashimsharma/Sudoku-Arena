@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HiArrowLeft } from "react-icons/hi"; 
 import { useLocation, useNavigate } from "react-router-dom";
-import CreateRoomModal from "./CreateRoomModal";
+import {CreateRoomModal, JoinRoomModal} from "./";
 import { getSocket } from "../config/socket.config";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setGameId, setMe } from "../redux/gameSlice";
+import { CREATE_ROOM, ROOM_CREATED } from "../messages/messages";
 
 interface User {
     id: string
@@ -13,38 +15,75 @@ interface User {
 }
 
 const Game = () => {
-	const [modalOpened, setModalOpened] = useState(false);
+	const [createRoomModalOpened, setCreateRoomModalOpened] = useState(false);
+	const [joinRoomModalOpened, setJoinRoomModalOpened] = useState(false);
+	
+	const navigate = useNavigate();
+
 	const [socket, setSocket] = useState<WebSocket | null>(null);
+
 	const me: User = useSelector((state: any) => state.user).user;
+
+	if(!me){
+		navigate("/");
+	}
+
 	const location = useLocation();
+	const dispatch = useDispatch();
+	
+	const handleMessages = (event: MessageEvent) => {
+		const data = JSON.parse(event.data);
+				const type = data.type;
+
+				switch(type){
+					case ROOM_CREATED:
+						const roomId = data.roomId;
+						dispatch(setGameId({gameId: roomId}));
+						navigate("/game/game-room", {state: {from: "/game"}});
+						break;
+				}
+	}
 
 	useEffect(() => {
-		console.log(location.state)
-		if(location.state?.from !== "/"){
+		if((location.state === null) || location.state?.from !== "/"){
 			navigate("/");
+			return;
 		}
 
-		return;
+		let socket: WebSocket | null;
 
 		try {
-			setSocket(getSocket());
+			socket = getSocket();
+			setSocket(socket);
+
+			socket.addEventListener('message', handleMessages)
 		} catch (error) {
 			console.log(error);
 		}
-	}, [])
 
-	const navigate = useNavigate();
+		// Set Me Variable as the current authenticated user in Global Redux State.
+		dispatch(setMe({me}));
+
+		return () => {
+			socket?.removeEventListener("message", handleMessages);
+		}
+	}, [])
 
 	const back = () => {
 		navigate("/");
 	};
 
-	const openModal = () => {
-		setModalOpened(true);
+	const openCreateRoomModal = () => {
+		setCreateRoomModalOpened(true);
+	};
+
+	const openJoinRoomModal = () => {
+		setJoinRoomModalOpened(true);
 	};
 
 	const onClose = () => {
-		setModalOpened(false);
+		createRoomModalOpened && setCreateRoomModalOpened(false);
+		joinRoomModalOpened && setJoinRoomModalOpened(false);
 	};
 
 	const onCreate = ({
@@ -54,11 +93,20 @@ const Game = () => {
 		difficulty: string;
 		gameType: string;
 	}) => {
-		setModalOpened(false);
+		setCreateRoomModalOpened(false);
 
-		console.log(difficulty);
-		console.log(gameType);
+		socket !== null && socket.send(JSON.stringify({
+			type: CREATE_ROOM,
+			params: {
+				difficulty,
+				gameType
+			}
+		}))
 	};
+
+	const onJoin = (roomId: string) => {
+		console.log(roomId);
+	}
 
 	return (
 		!socket ? <p>Loading...</p> : 
@@ -88,17 +136,20 @@ const Game = () => {
 				<div className="mt-6 flex flex-col gap-4">
 					<button
 						className="bg-red-500 hover:bg-red-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg"
-						onClick={openModal}
+						onClick={openCreateRoomModal}
 					>
 						Create Room
 					</button>
-					<button className="bg-gray-700 hover:bg-gray-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg">
+					<button className="bg-gray-700 hover:bg-gray-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg" onClick={openJoinRoomModal}>
 						Join Room
 					</button>
 				</div>
 			</div>
-			{modalOpened && (
+			{createRoomModalOpened && (
 				<CreateRoomModal onClose={onClose} onCreate={onCreate} />
+			)}
+			{joinRoomModalOpened && (
+				<JoinRoomModal onClose={onClose} onJoin={onJoin} />
 			)}
 		</div>
 	);
