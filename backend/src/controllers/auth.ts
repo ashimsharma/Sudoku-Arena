@@ -49,9 +49,7 @@ function googleLogin(req: Request, res: Response, next: NextFunction){
 
 function googleLoginCallback(req: Request, res: Response, next: NextFunction){
   if (!req.user) {
-    res.status(401).json({
-      error: "Authentication failed",
-    });
+    res.redirect((process.env.FAILURE_REDIRECT as string))
   }
 
   const payload = { id: (req.user as User).id };
@@ -77,15 +75,6 @@ function googleLoginCallback(req: Request, res: Response, next: NextFunction){
   res.redirect((process.env.CLIENT_URL as string))
 }
 
-function loginFailed(req: Request, res: Response){
-  res.status(401).json(
-    {
-      success: false,
-      message: "Login Failed"
-    }
-  )
-}
-
 function isAuthenticated(req: Request, res: Response){
   if(req.user){
     res.status(200)
@@ -99,4 +88,4 @@ function isAuthenticated(req: Request, res: Response){
     )
   }
 }
-export { githubLogin, githubLoginCallback, googleLogin, googleLoginCallback, loginFailed, isAuthenticated };
+export { githubLogin, githubLoginCallback, googleLogin, googleLoginCallback, isAuthenticated };

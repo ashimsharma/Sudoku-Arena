@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { githubLogin, githubLoginCallback, googleLogin, googleLoginCallback, isAuthenticated, loginFailed } from "../controllers/auth";
+import { githubLogin, githubLoginCallback, googleLogin, googleLoginCallback, isAuthenticated } from "../controllers/auth";
 import passport, { authenticate } from "passport";
-import verifyJWT from "../middlewares.ts/auth.middleware";
+import verifyJWT from "../middlewares/auth.middleware";
 
 const authRouter = Router();
 

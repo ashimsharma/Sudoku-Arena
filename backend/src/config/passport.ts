@@ -16,6 +16,10 @@ passport.use(
       profile: Profile,
       done: (error: any, user?: any) => void
     ) => {
+      if(!accessToken){
+        done("Failed to get access token", null);
+      }
+
       try {
         let user = await prisma.user.findUnique({
           where: { email: profile.emails?.[0].value },
@@ -32,7 +36,10 @@ passport.use(
         }
 
         done(null, user);
-      } catch (error) {}
+      } catch (error) {
+        console.log(error);
+        done(error, null)
+      }
     }
   )
 );
@@ -46,6 +53,10 @@ passport.use(
       scope: ["profile", "email"]
     },
     async (accessToken: string, refreshToken: string, profile: Profile, cb: (error: any, user?: any) => void) => {
+      if(!accessToken){
+        cb("Failed to get access token", null);
+      }
+
       try {
         let user = await prisma.user.findUnique({
           where: { email: profile.emails?.[0].value },
@@ -62,7 +73,10 @@ passport.use(
         }
 
         cb(null, user);
-      } catch (error) {}
+      } catch (error) {
+        console.log(error);
+        cb(error, null);
+      }
     }
   )
 );
