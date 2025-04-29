@@ -4,12 +4,14 @@ interface InitialState {
     gameId: null | string
     me: null | Object
     opponent: null | Object
+    meType: null | string
 }
 
 const initialState: InitialState = {
     gameId: null,
     me: null,
-    opponent: null
+    opponent: null,
+    meType: ''
 }
 
 const gameSlice = createSlice({
@@ -24,9 +26,12 @@ const gameSlice = createSlice({
         },
         setOpponent: (state, action) => {
             state.opponent = action.payload.opponent;
+        },
+        setMeType: (state, action) => {
+            state.meType = action.payload.meType;
         }
     },
 });
 
-export const { setGameId, setMe } = gameSlice.actions;
+export const { setGameId, setMe, setOpponent, setMeType } = gameSlice.actions;
 export default gameSlice.reducer;

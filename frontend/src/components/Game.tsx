@@ -4,8 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {CreateRoomModal, JoinRoomModal} from "./";
 import { getSocket } from "../config/socket.config";
 import { useDispatch, useSelector } from "react-redux";
-import { setGameId, setMe } from "../redux/gameSlice";
-import { CREATE_ROOM, ROOM_CREATED } from "../messages/messages";
+import { setGameId, setMe, setMeType, setOpponent } from "../redux/gameSlice";
+import { CREATE_ROOM, JOIN_ROOM, OPPONENT_JOINED, ROOM_CREATED, ROOM_JOINED } from "../messages/messages";
 
 interface User {
     id: string
@@ -17,7 +17,7 @@ interface User {
 const Game = () => {
 	const [createRoomModalOpened, setCreateRoomModalOpened] = useState(false);
 	const [joinRoomModalOpened, setJoinRoomModalOpened] = useState(false);
-	
+
 	const navigate = useNavigate();
 
 	const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -39,6 +39,16 @@ const Game = () => {
 					case ROOM_CREATED:
 						const roomId = data.roomId;
 						dispatch(setGameId({gameId: roomId}));
+						dispatch(setMeType({meType: 'creator'}));
+						navigate("/game/game-room", {state: {from: "/game"}});
+						break;
+					case ROOM_JOINED:
+						const name = data.data.creatorName;
+						const avatarUrl = data.data.avatarUrl;
+						dispatch(setOpponent({opponent: {name, avatarUrl}}));
+						const joinerRoomId = data.data.roomId;
+						dispatch(setGameId({gameId: joinerRoomId}));
+						dispatch(setMeType({meType: 'joiner'}));
 						navigate("/game/game-room", {state: {from: "/game"}});
 						break;
 				}
@@ -105,7 +115,14 @@ const Game = () => {
 	};
 
 	const onJoin = (roomId: string) => {
-		console.log(roomId);
+		setJoinRoomModalOpened(false);
+
+		socket !== null && socket.send(JSON.stringify({
+			type: JOIN_ROOM,
+			params: {
+				roomId
+			}
+		}))
 	}
 
 	return (

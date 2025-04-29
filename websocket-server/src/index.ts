@@ -58,7 +58,7 @@ wss.on("connection", function connection(ws, req) {
 					gameManager.add(createdGame);
 					break;
 				case JOIN_ROOM:
-					const foundGame = gameManager.findGame(params.gameId); // Find the game by ID
+					const foundGame = gameManager.findGame(params.roomId); 
 					if (foundGame) {
 						foundGame.joinGame(ws); // Add the player to the game
 					} else {

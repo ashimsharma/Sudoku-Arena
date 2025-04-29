@@ -11,6 +11,8 @@ export const ROOM_CREATE_FAILED = "room_create_failed";
 export const ROOM_JOINED = "room_joined";
 export const ROOM_JOIN_FAILED = "room_join_failed";
 
+export const OPPONENT_JOINED = "opponent_joined";
+
 export const GAME_INITIATED = "game_initiated";
 export const GAME_INITIATE_FAILED = "game_initiate_failed";
 

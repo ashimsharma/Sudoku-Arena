@@ -2,7 +2,7 @@ import { WebSocket } from "ws";
 import { prisma, GameStatus } from "../db/index";
 import { connectionUserIds } from "../store/connections";
 import { getSudoku } from "sudoku-gen";
-import { ROOM_CREATE_FAILED, ROOM_CREATED, ROOM_JOIN_FAILED, ROOM_JOINED } from "../messages/messages";
+import { OPPONENT_JOINED, ROOM_CREATE_FAILED, ROOM_CREATED, ROOM_JOIN_FAILED, ROOM_JOINED } from "../messages/messages";
 
 type Options = {
   difficulty: Difficulty;
@@ -20,6 +20,8 @@ export class Game {
   public gameId?: string;
   private creator: {
     id: string;
+    name: string;
+    avatarUrl: string;
     type: string;
     socket: WebSocket;
     gameStarted: boolean;
@@ -30,6 +32,8 @@ export class Game {
   };
   private joiner?: {
     id: string;
+    name: string;
+    avatarUrl: string;
     type: string;
     socket: WebSocket;
     gameStarted: boolean;
@@ -47,6 +51,8 @@ export class Game {
   constructor(creatingPlayer: WebSocket, params: any) {
     this.creator = {
       id: connectionUserIds.get(creatingPlayer),
+      name: '',
+      avatarUrl: '',
       type: "creator",
       socket: creatingPlayer,
       gameStarted: false,
@@ -56,6 +62,8 @@ export class Game {
       percentageComplete: 0
     };
 
+    this.getCreator(connectionUserIds.get(creatingPlayer));
+
     // Delete it from the global map after creating the game user.
     connectionUserIds.delete(creatingPlayer);
 
@@ -63,6 +71,18 @@ export class Game {
     this.createGameInDB();
   }
 
+  async getCreator(id: string){
+    const creatorUser = await prisma.user.findFirst(
+      {
+        where: {
+          id
+        }
+      }
+    )
+
+    this.creator.name = (creatorUser?.name as string);
+    this.creator.avatarUrl = (creatorUser?.avatarUrl as string);
+  }
   async createGameInDB() {
     try {
       const createdGame = await prisma.game.create({
@@ -100,24 +120,36 @@ export class Game {
         },
       });
 
+      this.creator?.socket.send(
+        JSON.stringify({type: OPPONENT_JOINED, data: {joinerName: this.joiner?.name, avatarUrl: this.joiner?.avatarUrl}})
+      )
+
       this.joiner?.socket.send(
-        JSON.stringify({ message: ROOM_JOINED })
+        JSON.stringify({ type: ROOM_JOINED, data: {roomId: this.gameId, creatorName: this.creator?.name, avatarUrl: this.creator?.avatarUrl} })
       );
     } catch (error) {
       this.joiner?.socket.send(
-        JSON.stringify({ message: ROOM_JOIN_FAILED })
+        JSON.stringify({ type: ROOM_JOIN_FAILED })
       );
     }
   }
 
-  joinGame(joiningPlayer: WebSocket) {
+  async joinGame(joiningPlayer: WebSocket) {
     if (connectionUserIds.get(joiningPlayer) === this.creator.id) {
       joiningPlayer.send(JSON.stringify({ message: ROOM_JOIN_FAILED }));
       return;
     }
 
+    const joinerUser = await prisma.user.findFirst({
+			where: {
+				id: connectionUserIds.get(joiningPlayer),
+			},
+		});
+
     this.joiner = {
       id: connectionUserIds.get(joiningPlayer),
+      name: (joinerUser?.name as string),
+      avatarUrl: (joinerUser?.avatarUrl as string),
       type: "joiner",
       socket: joiningPlayer,
       gameStarted: false,
