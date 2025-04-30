@@ -130,6 +130,9 @@ const GameRoom = () => {
 					)}
 				</div>
 			</div>
+			{(opponent && me) && <div className="text-center">
+				<button className="bg-red-500 hover:bg-red-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg">Start Game</button>
+			</div>}
 		</div>
 	);
 };
