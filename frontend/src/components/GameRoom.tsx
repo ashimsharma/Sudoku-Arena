@@ -3,19 +3,24 @@ import { getSocket } from "../config/socket.config";
 import { FiCopy } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { OPPONENT_JOINED } from "../messages/messages";
+import {
+	BOTH_USERS_GAME_INITIATED,
+	GAME_INITIATED,
+	INIT_GAME,
+	OPPONENT_JOINED,
+} from "../messages/messages";
 import { setOpponent } from "../redux/gameSlice";
+import LoaderModal from "./LoaderModal";
 
 const GameRoom = () => {
 	const [socket, setSocket] = useState<WebSocket | null>(null);
 	const [opponentJoined, setOpponentJoined] = useState(false);
+	const [gameInitiated, setGameInitiated] = useState(false);
 
 	const gameId = useSelector((state: any) => state.game).gameId;
 	const me = useSelector((state: any) => state.game).me;
 	const opponent = useSelector((state: any) => state.game).opponent;
 	const type = useSelector((state: any) => state.game).meType;
-
-	console.log(opponent);
 
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -30,8 +35,15 @@ const GameRoom = () => {
 			case OPPONENT_JOINED:
 				const name = data.data.joinerName;
 				const avatarUrl = data.data.avatarUrl;
-				dispatch(setOpponent({opponent: {name, avatarUrl}}));
+				dispatch(setOpponent({ opponent: { name, avatarUrl } }));
 				setOpponentJoined(true);
+				break;
+			case GAME_INITIATED:
+				setGameInitiated(true);
+				break;
+			case BOTH_USERS_GAME_INITIATED:
+				navigate("/game/game-room/game-board");
+				console.log(data.data);
 				break;
 		}
 	};
@@ -55,7 +67,7 @@ const GameRoom = () => {
 
 		return () => {
 			socket?.removeEventListener("message", handleMessages);
-		}
+		};
 	}, []);
 
 	const [copied, setCopied] = useState(false);
@@ -66,13 +78,27 @@ const GameRoom = () => {
 		setTimeout(() => setCopied(false), 2000);
 	};
 
+	const initGame = async () => {
+		socket?.send(
+			JSON.stringify({
+				type: INIT_GAME,
+				params: {
+					roomId: gameId,
+				},
+			})
+		);
+	};
+
 	return !socket ? (
 		<p>Loading...</p>
 	) : (
 		<div className="bg-gray-800 text-white">
-			<h1 className="p-4 text-center text-3xl font-bold text-red-500">
-				{type === "creator" ? me.name : opponent.name}'s GAME ROOM
-			</h1>
+			{gameInitiated && <LoaderModal text="Waiting for opponent..." />}
+			<div className="py-6 bg-gray-900 shadow-lg">
+				<h1 className="p-4 text-center text-3xl font-bold text-red-500">
+					{type === "creator" ? me.name : opponent.name}'s GAME ROOM
+				</h1>
+			</div>
 			<div className="mt-4">
 				<div className="bg-gray-900 p-4 rounded-2xl flex items-center space-x-2 shadow-md w-1/3 mx-auto">
 					<input
@@ -125,14 +151,23 @@ const GameRoom = () => {
 								alt="User Avatar"
 								className="h-28 w-28 rounded-full"
 							/>
-							<p className="text-center text-2xl">{opponent.name}</p>
+							<p className="text-center text-2xl">
+								{opponent.name}
+							</p>
 						</>
 					)}
 				</div>
 			</div>
-			{(opponent && me) && <div className="text-center">
-				<button className="bg-red-500 hover:bg-red-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg">Start Game</button>
-			</div>}
+			{opponent && me && (
+				<div className="text-center">
+					<button
+						className="bg-red-500 hover:bg-red-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg"
+						onClick={initGame}
+					>
+						Start Game
+					</button>
+				</div>
+			)}
 		</div>
 	);
 };

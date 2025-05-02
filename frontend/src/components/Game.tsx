@@ -5,7 +5,7 @@ import {CreateRoomModal, JoinRoomModal} from "./";
 import { getSocket } from "../config/socket.config";
 import { useDispatch, useSelector } from "react-redux";
 import { setGameId, setMe, setMeType, setOpponent } from "../redux/gameSlice";
-import { CREATE_ROOM, JOIN_ROOM, OPPONENT_JOINED, ROOM_CREATED, ROOM_JOINED } from "../messages/messages";
+import { CREATE_ROOM, JOIN_ROOM, ROOM_CREATED, ROOM_JOINED } from "../messages/messages";
 
 interface User {
     id: string
@@ -105,7 +105,7 @@ const Game = () => {
 	}) => {
 		setCreateRoomModalOpened(false);
 
-		socket !== null && socket.send(JSON.stringify({
+		socket?.send(JSON.stringify({
 			type: CREATE_ROOM,
 			params: {
 				difficulty,

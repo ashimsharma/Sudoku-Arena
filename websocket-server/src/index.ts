@@ -67,11 +67,11 @@ wss.on("connection", function connection(ws, req) {
 					}
 					break;
 				case INIT_GAME:
-					const startedGame = gameManager.findGame(params.gameId);
-					startedGame.initGame(params.gameId, ws);
+					const startedGame = gameManager.findGame(params.roomId);
+					startedGame.initGame(params.roomId, ws);
 					break;
 				case ADD_NUMBER:
-					const numberAddedGame = gameManager.findGame(params.gameId);
+					const numberAddedGame = gameManager.findGame(params.roomId);
 					numberAddedGame.verifyValue(
 						ws,
 						params.userId,

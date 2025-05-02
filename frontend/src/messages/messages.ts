@@ -15,6 +15,7 @@ export const OPPONENT_JOINED = "opponent_joined";
 
 export const GAME_INITIATED = "game_initiated";
 export const GAME_INITIATE_FAILED = "game_initiate_failed";
+export const BOTH_USERS_GAME_INITIATED = "both_users_game_initiated";
 
 export const NUMBER_ADDED = "number_added";
 export const NUMBER_ADD_FAILED = "number_add_failed";
