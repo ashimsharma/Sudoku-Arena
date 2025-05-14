@@ -5,13 +5,17 @@ interface InitialState {
     me: null | Object
     opponent: null | Object
     meType: null | string
+    initialGameState: (number | null)[]
+    currentGameState: (number | null)[]
 }
 
 const initialState: InitialState = {
     gameId: null,
     me: null,
     opponent: null,
-    meType: ''
+    meType: '',
+    initialGameState: [],
+    currentGameState: []
 }
 
 const gameSlice = createSlice({
@@ -29,9 +33,15 @@ const gameSlice = createSlice({
         },
         setMeType: (state, action) => {
             state.meType = action.payload.meType;
+        },
+        setInitialGameState: (state, action) => {
+            state.initialGameState = action.payload.initialGameState;
+        },
+        setCurrentGameState: (state, action) => {
+            state.currentGameState = action.payload.currentGameState;
         }
     },
 });
 
-export const { setGameId, setMe, setOpponent, setMeType } = gameSlice.actions;
+export const { setGameId, setMe, setOpponent, setMeType, setInitialGameState, setCurrentGameState } = gameSlice.actions;
 export default gameSlice.reducer;

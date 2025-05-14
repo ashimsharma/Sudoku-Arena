@@ -5,6 +5,7 @@ import {
 	Leaderboard,
 	Game,
 	GameRoom,
+	GameBoardScreen
 } from "./components";
 import AuthComponent from "./components/AuthComponent";
 import { Provider } from "react-redux";
@@ -45,6 +46,7 @@ function App() {
 						/>
 						<Route path="/game" element={<Game />} />
 						<Route path="/game/game-room" element={<GameRoom />} />
+						<Route path="/game/game-room/game-board" element={<GameBoardScreen />} />
 					</Routes>
 			</Router>
 			</Provider>

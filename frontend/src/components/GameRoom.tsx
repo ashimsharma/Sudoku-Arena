@@ -9,7 +9,7 @@ import {
 	INIT_GAME,
 	OPPONENT_JOINED,
 } from "../messages/messages";
-import { setOpponent } from "../redux/gameSlice";
+import { setInitialGameState, setOpponent, setCurrentGameState } from "../redux/gameSlice";
 import LoaderModal from "./LoaderModal";
 
 const GameRoom = () => {
@@ -43,7 +43,8 @@ const GameRoom = () => {
 				break;
 			case BOTH_USERS_GAME_INITIATED:
 				navigate("/game/game-room/game-board");
-				console.log(data.data);
+				dispatch(setInitialGameState({initialGameState: data.data.initialGameState}));
+				dispatch(setCurrentGameState({currentGameState: data.data.currentGameState}));
 				break;
 		}
 	};

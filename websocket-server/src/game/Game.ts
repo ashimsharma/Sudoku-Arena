@@ -190,7 +190,7 @@ export class Game {
 	}
 
 	initGame(gameId: string, socket: WebSocket) {
-		if (!this.initialGameState) {
+		if (this.initialGameState.length === 0) {
 			const sudoku = getSudoku(this.options.difficulty);
 			this.initialGameState = sudoku.puzzle.split("").map((data) => {
 				if (this.isInteger(data)) {
