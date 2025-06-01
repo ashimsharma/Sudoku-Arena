@@ -19,3 +19,17 @@ export const BOTH_USERS_GAME_INITIATED = "both_users_game_initiated";
 
 export const NUMBER_ADDED = "number_added";
 export const NUMBER_ADD_FAILED = "number_add_failed";
+
+export const YOUR_MISTAKES_COMPLETE = "your_mistakes_complete";
+export const OPPONENT_MISTAKES_COMPLETE = "opponent_mistakes_complete";
+
+export const WRONG_CELL = "wrong_cell";
+export const CORRECT_CELL = "correct_cell";
+
+export const OPPONENT_CORRECT_CELL = "opponent_correct_cell";
+export const OPPONENT_WRONG_CELL = "opponent_wrong_cell";
+
+export const OPPONENT_MISTAKE = "opponent_mistake";
+
+export const BOARD_COMPELTE = "board_complete";
+export const OPPONENT_BOARD_COMPELTE = "opponent_board_complete";

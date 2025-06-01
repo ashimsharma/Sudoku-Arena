@@ -13,5 +13,6 @@ import Popup from "./Popup";
 import GameBoard from "./GameBoard";
 import ButtonPallet from "./ButtonPallet";
 import TimerPallet from "./TimerPallet";
+import ProgressBar from "./ProgressBar";
 
-export {Login, Home, Navbar, Footer, Leaderboard, Game, CreateRoomModal, GameRoom, JoinRoomModal, GameBoardScreen, Keypad, Popup, GameBoard, ButtonPallet, TimerPallet};
+export {Login, Home, Navbar, Footer, Leaderboard, Game, CreateRoomModal, GameRoom, JoinRoomModal, GameBoardScreen, Keypad, Popup, GameBoard, ButtonPallet, TimerPallet, ProgressBar};

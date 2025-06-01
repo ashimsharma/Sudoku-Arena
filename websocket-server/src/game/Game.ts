@@ -11,6 +11,14 @@ import {
 	ROOM_CREATED,
 	ROOM_JOIN_FAILED,
 	ROOM_JOINED,
+	WRONG_CELL,
+	YOUR_MISTAKES_COMPLETE,
+	OPPONENT_MISTAKES_COMPLETE,
+	OPPONENT_MISTAKE,
+	CORRECT_CELL,
+	OPPONENT_CORRECT_CELL,
+	BOARD_COMPELTE,
+	OPPONENT_BOARD_COMPELTE
 } from "../messages/messages";
 
 type Options = {
@@ -25,6 +33,12 @@ enum GameTypes {
 	completionBased = "completionBased",
 }
 
+type CurrentGameStateData = {
+	digit: number | null;
+	isOnCorrectPosition: boolean;
+	canBeTyped: boolean;
+}
+
 export class Game {
 	public gameId?: string;
 	private creator: {
@@ -34,7 +48,7 @@ export class Game {
 		type: string;
 		socket: WebSocket;
 		gameStarted: boolean;
-		currentGameState: (number | null)[];
+		currentGameState: (CurrentGameStateData)[];
 		mistakes: number;
 		correctAdditions: 0;
 		percentageComplete: number;
@@ -46,16 +60,17 @@ export class Game {
 		type: string;
 		socket: WebSocket;
 		gameStarted: boolean;
-		currentGameState: (number | null)[];
+		currentGameState: (CurrentGameStateData)[];
 		mistakes: number;
 		correctAdditions: number;
 		percentageComplete: number;
 	};
 	private options: Options;
-	private initialGameState: (number | null)[] = [];
+	private initialGameState: (CurrentGameStateData)[] = [];
 	private solution: number[] = [];
 	private gameStarted: boolean = false;
 	private emptyCells: number = 0;
+	private readonly totalAllowedMistakes: number = 5;
 
 	constructor(creatingPlayer: WebSocket, params: any) {
 		this.creator = {
@@ -156,7 +171,7 @@ export class Game {
 
 	async joinGame(joiningPlayer: WebSocket) {
 		if (connectionUserIds.get(joiningPlayer) === this.creator.id) {
-			joiningPlayer.send(JSON.stringify({ message: ROOM_JOIN_FAILED }));
+			joiningPlayer.send(JSON.stringify({ type: ROOM_JOIN_FAILED }));
 			return;
 		}
 
@@ -194,10 +209,18 @@ export class Game {
 			const sudoku = getSudoku(this.options.difficulty);
 			this.initialGameState = sudoku.puzzle.split("").map((data) => {
 				if (this.isInteger(data)) {
-					return parseInt(data);
+					return {
+						digit: parseInt(data),
+						isOnCorrectPosition: true,
+						canBeTyped: false
+					};
 				}
 				this.emptyCells += 1;
-				return null;
+				return {
+					digit: null,
+					isOnCorrectPosition: true,
+					canBeTyped: true
+				};
 			});
 			this.solution = sudoku.solution
 				.split("")
@@ -205,7 +228,7 @@ export class Game {
 		}
 
 		if (this.creator.socket === socket) {
-			this.creator.currentGameState = [...this.initialGameState];
+			this.creator.currentGameState = this.initialGameState.map(cell => ({...cell}));
 			const gameCreated = this.initGameInDB(gameId, this.creator.id);
 			if (!gameCreated) {
 				socket.send(JSON.stringify({ type: GAME_INITIATE_FAILED }));
@@ -225,7 +248,7 @@ export class Game {
 				(this.gameStarted = true);
 		} else {
 			this.joiner !== undefined &&
-				(this.joiner.currentGameState = [...this.initialGameState]);
+				(this.joiner.currentGameState = this.initialGameState.map(cell => ({...cell})));
 
 			const gameCreated = this.initGameInDB(
 				gameId,
@@ -309,53 +332,56 @@ export class Game {
 		index: number
 	) {
 		try {
-			if (this.initialGameState[index] !== null) {
+			if (this.initialGameState[index].digit !== null) {
 				return;
 			}
 
 			const user =
 				userId === this.creator.id ? this.creator : this.joiner;
 
-			user !== undefined && (user.currentGameState[index] = value);
+			user !== undefined && (user.currentGameState[index].digit = value);
 
 			if (this.solution[index] !== value) {
 				user !== undefined && (user.mistakes += 1);
-				if (user?.mistakes === 3) {
+				user !== undefined && (user.currentGameState[index].isOnCorrectPosition = false);
+				if (user?.mistakes === this.totalAllowedMistakes) {
 					user.socket.send(
 						JSON.stringify({
-							message: "You did 3 mistakes, You Lose.",
+							type: YOUR_MISTAKES_COMPLETE,
+							currentGameState: user?.currentGameState
 						})
 					);
 				} else {
 					user?.socket.send(
 						JSON.stringify({
-							message: "Oops, its on the wrong position.",
+							type: WRONG_CELL,
+							currentGameState: user?.currentGameState
 						})
 					);
 				}
 
-				if (user?.type === "creator" && user?.mistakes === 3) {
+				if (user?.type === "creator" && user?.mistakes === this.totalAllowedMistakes) {
 					this.joiner?.socket.send(
 						JSON.stringify({
-							message: "Opponent did 3 mistakes, You win",
+							type: OPPONENT_MISTAKES_COMPLETE,
 						})
 					);
-				} else if (user?.type === "joiner" && user?.mistakes === 3) {
+				} else if (user?.type === "joiner" && user?.mistakes === this.totalAllowedMistakes) {
 					this.creator.socket.send(
 						JSON.stringify({
-							message: "Opponent did 3 mistakes, You win",
+							type: OPPONENT_MISTAKES_COMPLETE,
 						})
 					);
-				} else if (user?.type === "creator" && user?.mistakes < 3) {
+				} else if (user?.type === "creator" && user?.mistakes < this.totalAllowedMistakes) {
 					this.joiner?.socket.send(
 						JSON.stringify({
-							message: "Opponent did a mistake",
+							type: OPPONENT_MISTAKE,
 						})
 					);
-				} else if (user?.type === "joiner" && user?.mistakes < 3) {
+				} else if (user?.type === "joiner" && user?.mistakes < this.totalAllowedMistakes) {
 					this.creator.socket.send(
 						JSON.stringify({
-							message: "Opponent did a mistake",
+							type: OPPONENT_MISTAKE,
 						})
 					);
 				}
@@ -364,12 +390,15 @@ export class Game {
 
 			user !== undefined && (user.correctAdditions += 1);
 
+			user !== undefined && (user.currentGameState[index].canBeTyped = false);
+
 			let correctAdditions =
 				user !== undefined ? user?.correctAdditions : null;
 
 			let percentageComplete =
-				((correctAdditions as number) / this.emptyCells) * 100;
+				Math.round(((correctAdditions as number) / this.emptyCells) * 100);
 
+			
 			user !== undefined &&
 				(user.percentageComplete = percentageComplete);
 
@@ -378,7 +407,7 @@ export class Game {
 			if (isComplete) {
 				user?.socket.send(
 					JSON.stringify({
-						message: "Board Complete.",
+						type: BOARD_COMPELTE,
 						percentageComplete,
 						currentGameState: user?.currentGameState,
 					})
@@ -387,14 +416,14 @@ export class Game {
 				if (user?.type === "creator") {
 					this.joiner?.socket.send(
 						JSON.stringify({
-							message: "Opponent Board Complete.",
+							type: OPPONENT_BOARD_COMPELTE,
 							percentageComplete,
 						})
 					);
 				} else {
 					this.creator.socket.send(
 						JSON.stringify({
-							message: "Opponent Board Complete.",
+							type: OPPONENT_BOARD_COMPELTE,
 							percentageComplete,
 						})
 					);
@@ -405,7 +434,7 @@ export class Game {
 
 			user?.socket.send(
 				JSON.stringify({
-					message: "Correct Number.",
+					type: CORRECT_CELL,
 					percentageComplete,
 					currentGameState: user?.currentGameState,
 				})
@@ -414,14 +443,14 @@ export class Game {
 			if (user?.type === "creator") {
 				this.joiner?.socket.send(
 					JSON.stringify({
-						message: "Opponent Correct Number.",
+						type: OPPONENT_CORRECT_CELL,
 						percentageComplete,
 					})
 				);
 			} else {
 				this.creator.socket.send(
 					JSON.stringify({
-						message: "Opponent Correct Number.",
+						type: OPPONENT_CORRECT_CELL,
 						percentageComplete,
 					})
 				);

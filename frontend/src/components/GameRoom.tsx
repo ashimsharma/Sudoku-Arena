@@ -42,7 +42,9 @@ const GameRoom = () => {
 				setGameInitiated(true);
 				break;
 			case BOTH_USERS_GAME_INITIATED:
-				navigate("/game/game-room/game-board");
+				navigate("/game/game-room/game-board", {state: {
+					from: "/game/game-room"
+				}});
 				dispatch(setInitialGameState({initialGameState: data.data.initialGameState}));
 				dispatch(setCurrentGameState({currentGameState: data.data.currentGameState}));
 				break;

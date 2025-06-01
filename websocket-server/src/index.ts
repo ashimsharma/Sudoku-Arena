@@ -63,7 +63,7 @@ wss.on("connection", function connection(ws, req) {
 						foundGame.joinGame(ws); // Add the player to the game
 					} else {
 						// Handle game not found
-						ws.send(JSON.stringify({ message: "Game not found!" }));
+						ws.send(JSON.stringify({ type: "Game not found!" }));
 					}
 					break;
 				case INIT_GAME:

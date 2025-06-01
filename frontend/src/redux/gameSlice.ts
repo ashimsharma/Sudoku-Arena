@@ -1,12 +1,20 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+type CurrentGameStateData = {
+	digit: number | null;
+	isOnCorrectPosition: boolean;
+	canBeTyped: boolean;
+}
+
 interface InitialState {
     gameId: null | string
     me: null | Object
     opponent: null | Object
     meType: null | string
-    initialGameState: (number | null)[]
-    currentGameState: (number | null)[]
+    initialGameState: (CurrentGameStateData)[]
+    currentGameState: (CurrentGameStateData)[]
+    meProgress: number
+    opponentProgress: number
 }
 
 const initialState: InitialState = {
@@ -15,7 +23,9 @@ const initialState: InitialState = {
     opponent: null,
     meType: '',
     initialGameState: [],
-    currentGameState: []
+    currentGameState: [],
+    meProgress: 0,
+    opponentProgress: 0
 }
 
 const gameSlice = createSlice({
@@ -39,9 +49,15 @@ const gameSlice = createSlice({
         },
         setCurrentGameState: (state, action) => {
             state.currentGameState = action.payload.currentGameState;
+        },
+        setMeProgress: (state, action) => {
+            state.meProgress = action.payload.meProgress;
+        },
+        setOpponentProgress: (state, action) => {
+            state.opponentProgress = action.payload.opponentProgress;
         }
     },
 });
 
-export const { setGameId, setMe, setOpponent, setMeType, setInitialGameState, setCurrentGameState } = gameSlice.actions;
+export const { setGameId, setMe, setOpponent, setMeType, setInitialGameState, setCurrentGameState, setMeProgress, setOpponentProgress } = gameSlice.actions;
 export default gameSlice.reducer;
