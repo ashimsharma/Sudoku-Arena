@@ -137,7 +137,7 @@ const Game = () => {
 				<span className="text-lg font-medium">Back</span>
 			</button>
 
-			<div className="flex w-1/4 bg-gray-800 p-4 text-white rounded-lg justify-center items-center gap-4">
+			<div className="flex w-1/4 bg-gray-800 p-4 text-white rounded-lg justify-center items-center gap-4 md:w-3/5">
 					<img src={me.avatarUrl} alt="User Avatar" className="h-28 w-28 rounded-full" />
 					<p className="text-center text-2xl">{me.name}</p>
 			</div>

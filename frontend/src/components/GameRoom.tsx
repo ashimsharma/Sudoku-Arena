@@ -143,8 +143,8 @@ const GameRoom = () => {
 					{!opponent ? (
 						<>
 							<div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-							<p className="font-medium">
-								Waiting for opponent...
+							<p className="font-medium text-center">
+								Waiting for opponent
 							</p>
 						</>
 					) : (

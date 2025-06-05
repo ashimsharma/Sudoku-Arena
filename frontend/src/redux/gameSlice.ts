@@ -15,6 +15,8 @@ interface InitialState {
     currentGameState: (CurrentGameStateData)[]
     meProgress: number
     opponentProgress: number
+    totalMistakes: number
+    opponentMistakes: number
 }
 
 const initialState: InitialState = {
@@ -25,7 +27,9 @@ const initialState: InitialState = {
     initialGameState: [],
     currentGameState: [],
     meProgress: 0,
-    opponentProgress: 0
+    opponentProgress: 0,
+    totalMistakes: 0,
+    opponentMistakes: 0,
 }
 
 const gameSlice = createSlice({
@@ -55,9 +59,15 @@ const gameSlice = createSlice({
         },
         setOpponentProgress: (state, action) => {
             state.opponentProgress = action.payload.opponentProgress;
+        },
+        setTotalMistakes: (state, action) => {
+            state.totalMistakes = action.payload.totalMistakes;
+        },
+        setOpponentMistakes: (state, actiion) => {
+            state.opponentMistakes = actiion.payload.opponentMistakes;
         }
     },
 });
 
-export const { setGameId, setMe, setOpponent, setMeType, setInitialGameState, setCurrentGameState, setMeProgress, setOpponentProgress } = gameSlice.actions;
+export const { setGameId, setMe, setOpponent, setMeType, setInitialGameState, setCurrentGameState, setMeProgress, setOpponentProgress, setTotalMistakes, setOpponentMistakes } = gameSlice.actions;
 export default gameSlice.reducer;

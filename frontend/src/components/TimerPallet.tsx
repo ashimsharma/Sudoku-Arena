@@ -1,9 +1,13 @@
 import { useContext, useEffect, useRef } from "react";
 import { GameContext } from "./GameBoardScreen";
+import { useSelector } from "react-redux";
 
 export default function TimerPallet() {
 	const timeRef = useRef("10 : 00"); 
 	const timerDisplayRef = useRef<HTMLDivElement | null>(null);
+	const totalMistakes: number = useSelector(
+		(state: any) => state.game
+	).totalMistakes;
 
 	useEffect(() => {
 		const formatNumber = (num: number) => (num < 10 ? `0${num}` : `${num}`);
@@ -39,7 +43,7 @@ export default function TimerPallet() {
 		return () => clearInterval(intervalId);
 	}, []);
 
-	const { mistakes, setMistakes, score, setScore, setTimerEnded } =
+	const { score, setScore, setTimerEnded } =
 		useContext(GameContext)!;
 
 	return (
@@ -50,7 +54,7 @@ export default function TimerPallet() {
 			</div>
 			<div className="p-2 text-xl text-center">
 				<p className="text-sm">Mistakes</p>
-				<p>{mistakes} / 5</p>
+				<p>{totalMistakes} / 5</p>
 			</div>
 			<div className="p-2 text-xl text-center">
 				<p className="text-sm">Score</p>

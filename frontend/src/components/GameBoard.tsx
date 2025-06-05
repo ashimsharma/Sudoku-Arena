@@ -10,12 +10,6 @@ type CurrentGameStateData = {
 }
 
 const GameBoard = () => {
-	const [popupProperties, setPopupProperties] = useState({
-		show: false,
-		isPositiveMessage: false,
-		message: "",
-	});
-
 	const gameId = useSelector((state: any) => state.game).gameId;
 	const initialGameState = useSelector((state: any) => state.game).initialGameState;
 
@@ -24,7 +18,8 @@ const GameBoard = () => {
 		selectedCellIndex,
 		me,
 		setForceReRender,
-		forceReRender
+		forceReRender,
+		popupProperties
 	} = useContext(GameContext)!;
 
 	const isTopEdge = (i: number) => Math.floor(i / 9) % 3 === 0;

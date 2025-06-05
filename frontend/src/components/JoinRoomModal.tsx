@@ -19,7 +19,7 @@ const JoinRoomModal = ({ onClose, onJoin }: any) => {
           placeholder="Enter Room ID"
           value={roomId}
           onChange={(e) => setRoomId(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 mb-4 text-black"
+          className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 mb-4 text-white bg-gray-700"
         />
         <div className="flex justify-end gap-3">
           <button

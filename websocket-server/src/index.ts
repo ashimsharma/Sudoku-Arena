@@ -1,6 +1,7 @@
 import { WebSocketServer } from "ws";
 import {
   ADD_NUMBER,
+	CLEAR_CELL,
 	CREATE_ROOM,
 	INIT_GAME,
 	JOIN_ROOM,
@@ -78,6 +79,10 @@ wss.on("connection", function connection(ws, req) {
 						params.value,
 						params.index
 					);
+					break;
+				case CLEAR_CELL:
+					const clearCellGame = gameManager.findGame(params.roomId);
+					clearCellGame.clearValue(params.userId, params.index);
 				default:
 					break;
 			}
