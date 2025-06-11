@@ -21,6 +21,7 @@ import {
 	OPPONENT_BOARD_COMPELTE,
 	ALREADY_ON_CORRECT_POSITION,
 	CELL_CLEARED,
+	OPPONENT_GAME_INITIATED,
 } from "../messages/messages";
 
 type Options = {
@@ -73,6 +74,7 @@ export class Game {
 	private gameStarted: boolean = false;
 	private emptyCells: number = 0;
 	private readonly totalAllowedMistakes: number = 5;
+	private startTime: number = 0;
 
 	constructor(creatingPlayer: WebSocket, params: any) {
 		this.creator = {
@@ -239,17 +241,25 @@ export class Game {
 				return;
 			}
 
-			socket.send(
-				JSON.stringify({
-					type: GAME_INITIATED,
-				})
-			);
-
 			this.creator.gameStarted = true;
 
 			this.creator?.gameStarted &&
 				this.joiner?.gameStarted &&
 				(this.gameStarted = true);
+
+			if (!this.gameStarted) {
+				socket.send(
+					JSON.stringify({
+						type: GAME_INITIATED,
+					})
+				);
+			}
+
+			this.joiner?.socket.send(
+				JSON.stringify({
+					type: OPPONENT_GAME_INITIATED,
+				})
+			);
 		} else {
 			this.joiner !== undefined &&
 				(this.joiner.currentGameState = this.initialGameState.map(
@@ -277,15 +287,24 @@ export class Game {
 					})
 				);
 			}
+
+			this.creator.socket.send(
+				JSON.stringify({
+					type: OPPONENT_GAME_INITIATED,
+				})
+			);
 		}
 
 		if (this.gameStarted) {
+			this.startTime = Date.now();
+
 			this.creator?.socket.send(
 				JSON.stringify({
 					type: BOTH_USERS_GAME_INITIATED,
 					data: {
 						initialGameState: this.initialGameState,
 						currentGameState: this.creator.currentGameState,
+						startTime: this.startTime,
 					},
 				})
 			);
@@ -295,6 +314,7 @@ export class Game {
 					data: {
 						initialGameState: this.initialGameState,
 						currentGameState: this.joiner?.currentGameState,
+						startTime: this.startTime,
 					},
 				})
 			);
@@ -349,6 +369,17 @@ export class Game {
 				return;
 			}
 
+			if (user.mistakes === this.totalAllowedMistakes) {
+				user.socket.send(
+					JSON.stringify({
+						type: YOUR_MISTAKES_COMPLETE,
+						currentGameState: user?.currentGameState,
+						mistakes: user?.mistakes,
+					})
+				);
+				return;
+			}
+
 			if (
 				user.currentGameState[index].isOnCorrectPosition &&
 				!user.currentGameState[index].canBeTyped
@@ -396,6 +427,7 @@ export class Game {
 					this.joiner?.socket.send(
 						JSON.stringify({
 							type: OPPONENT_MISTAKES_COMPLETE,
+							opponentMistakes: this.creator.mistakes
 						})
 					);
 				} else if (
@@ -405,6 +437,7 @@ export class Game {
 					this.creator.socket.send(
 						JSON.stringify({
 							type: OPPONENT_MISTAKES_COMPLETE,
+							opponentMistakes: this.joiner?.mistakes
 						})
 					);
 				} else if (
@@ -522,7 +555,7 @@ export class Game {
 
 			return;
 		}
-		
+
 		if (!user.currentGameState[index].digit) {
 			return;
 		}

@@ -11,7 +11,9 @@ import {
 	CORRECT_CELL,
 	OPPONENT_CORRECT_CELL,
 	OPPONENT_MISTAKE,
+	OPPONENT_MISTAKES_COMPLETE,
 	WRONG_CELL,
+	YOUR_MISTAKES_COMPLETE,
 } from "../messages/messages";
 import {
 	setCurrentGameState,
@@ -40,6 +42,7 @@ interface GameContextType {
 	setForceReRender: any;
 	forceReRender: boolean;
 	popupProperties: PopupProperties;
+	setPopupProperties: any;
 }
 
 interface PopupProperties {
@@ -178,6 +181,25 @@ export default function GameBoardScreen() {
 					})
 				);
 				break;
+			case YOUR_MISTAKES_COMPLETE:
+				dispatch(
+					setCurrentGameState({
+						currentGameState: data.currentGameState
+					})
+				);
+				dispatch(
+					setTotalMistakes({
+						totalMistakes: data.mistakes
+					})
+				);
+				break;
+			case OPPONENT_MISTAKES_COMPLETE:
+				dispatch(
+					setOpponentMistakes({
+						opponentMistakes: data.opponentMistakes
+					})
+				)
+				break;
 		}
 	};
 
@@ -288,17 +310,15 @@ export default function GameBoardScreen() {
 	}, []);
 
 	useEffect(() => {
-		const keyupHandler = (e: KeyboardEvent) => handleKeyPress(e);
-
 		const keydownHandler = () => {
 			keyPressed.current = true;
 		};
 
 		window.addEventListener("keydown", keydownHandler);
-		window.addEventListener("keyup", keyupHandler);
+		window.addEventListener("keyup", handleKeyPress);
 		return () => {
 			window.removeEventListener("keydown", keydownHandler);
-			window.addEventListener("keyup", keyupHandler);
+			window.addEventListener("keyup", handleKeyPress);
 		};
 	}, [currentGameState]);
 
@@ -317,6 +337,7 @@ export default function GameBoardScreen() {
 				setForceReRender,
 				forceReRender,
 				popupProperties,
+				setPopupProperties
 			}}
 		>
 			<div className="min-h-screen bg-gray-800 text-white">

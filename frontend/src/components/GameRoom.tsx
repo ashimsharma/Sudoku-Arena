@@ -1,21 +1,29 @@
 import { useEffect, useState } from "react";
 import { getSocket } from "../config/socket.config";
 import { FiCopy } from "react-icons/fi";
+import { MdCheckCircle } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
 	BOTH_USERS_GAME_INITIATED,
 	GAME_INITIATED,
 	INIT_GAME,
+	OPPONENT_GAME_INITIATED,
 	OPPONENT_JOINED,
 } from "../messages/messages";
-import { setInitialGameState, setOpponent, setCurrentGameState } from "../redux/gameSlice";
+import {
+	setInitialGameState,
+	setOpponent,
+	setCurrentGameState,
+	setStartTime,
+} from "../redux/gameSlice";
 import LoaderModal from "./LoaderModal";
 
 const GameRoom = () => {
 	const [socket, setSocket] = useState<WebSocket | null>(null);
 	const [opponentJoined, setOpponentJoined] = useState(false);
 	const [gameInitiated, setGameInitiated] = useState(false);
+	const [opponentGameInitiated, setOpponentGameInitiated] = useState(false);
 
 	const gameId = useSelector((state: any) => state.game).gameId;
 	const me = useSelector((state: any) => state.game).me;
@@ -41,12 +49,30 @@ const GameRoom = () => {
 			case GAME_INITIATED:
 				setGameInitiated(true);
 				break;
+			case OPPONENT_GAME_INITIATED:
+				setOpponentGameInitiated(true);
+				break;
 			case BOTH_USERS_GAME_INITIATED:
-				navigate("/game/game-room/game-board", {state: {
-					from: "/game/game-room"
-				}});
-				dispatch(setInitialGameState({initialGameState: data.data.initialGameState}));
-				dispatch(setCurrentGameState({currentGameState: data.data.currentGameState}));
+				navigate("/game/game-room/game-board", {
+					state: {
+						from: "/game/game-room",
+					},
+				});
+				dispatch(
+					setInitialGameState({
+						initialGameState: data.data.initialGameState,
+					})
+				);
+				dispatch(
+					setCurrentGameState({
+						currentGameState: data.data.currentGameState,
+					})
+				);
+				dispatch(
+					setStartTime({
+						startTime: data.data.startTime,
+					})
+				)
 				break;
 		}
 	};
@@ -135,6 +161,13 @@ const GameRoom = () => {
 						className="h-28 w-28 rounded-full"
 					/>
 					<p className="text-center text-2xl">{me.name}</p>
+					<div className="h-6">
+						{gameInitiated && (
+							<div className="text-white flex items-center px-2 py-1 rounded-full gap-1">
+								<div className="bg-white rounded-full w-fit inline-block"><MdCheckCircle style={{ color: 'green', fontSize: '24px' }} /></div> Ready
+							</div>
+						)}
+					</div>
 				</div>
 				<div className="col-span-1 flex justify-center items-center text-2xl font-bold">
 					VS
@@ -157,6 +190,13 @@ const GameRoom = () => {
 							<p className="text-center text-2xl">
 								{opponent.name}
 							</p>
+							<div className="h-6">
+								{opponentGameInitiated && (
+									<div className="text-white flex items-center px-2 py-1 rounded-full gap-1">
+										<div className="bg-white rounded-full w-fit inline-block"><MdCheckCircle style={{ color: 'green', fontSize: '24px' }} /></div> Ready
+									</div>
+								)}
+							</div>
 						</>
 					)}
 				</div>
