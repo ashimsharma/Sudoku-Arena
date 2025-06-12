@@ -163,7 +163,7 @@ const GameRoom = () => {
 					<p className="text-center text-2xl">{me.name}</p>
 					<div className="h-6">
 						{gameInitiated && (
-							<div className="text-white flex items-center px-2 py-1 rounded-full gap-1">
+							<div className="text-white bg-green-500 flex items-center px-2 py-1 rounded-full gap-1">
 								<div className="bg-white rounded-full w-fit inline-block"><MdCheckCircle style={{ color: 'green', fontSize: '24px' }} /></div> Ready
 							</div>
 						)}
@@ -192,7 +192,7 @@ const GameRoom = () => {
 							</p>
 							<div className="h-6">
 								{opponentGameInitiated && (
-									<div className="text-white flex items-center px-2 py-1 rounded-full gap-1">
+									<div className="text-white bg-green-400 flex items-center px-2 py-1 rounded-full gap-1">
 										<div className="bg-white rounded-full w-fit inline-block"><MdCheckCircle style={{ color: 'green', fontSize: '24px' }} /></div> Ready
 									</div>
 								)}

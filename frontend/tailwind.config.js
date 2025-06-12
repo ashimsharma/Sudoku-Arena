@@ -5,7 +5,17 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      keyframes: {
+        'crown-drop': {
+          '0%': { transform: 'translateY(-100px) scale(1.3)', opacity: '0' },
+          '100%': { transform: 'translateY(0) scale(1)', opacity: '1' },
+        },
+      },
+      animation: {
+        'crown-drop': 'crown-drop 0.6s ease-out forwards',
+      },
+    },
     screens: {
       xl: { max: "1279px" },
       // => @media (max-width: 1279px) { ... }

@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { Keypad, GameBoard, ButtonPallet, TimerPallet, ProgressBar } from "./";
+import { Keypad, GameBoard, ButtonPallet, TimerPallet, ProgressBar, ResultModal } from "./";
 import { useState, createContext, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getSocket } from "../config/socket.config";
@@ -341,6 +341,7 @@ export default function GameBoardScreen() {
 			}}
 		>
 			<div className="min-h-screen bg-gray-800 text-white">
+				<ResultModal />
 				<div className="py-6 bg-gray-900 shadow-lg">
 					<h1 className="p-4 text-center text-3xl font-bold text-red-500">
 						{type === "creator" ? me.name : opponent.name}'s GAME
