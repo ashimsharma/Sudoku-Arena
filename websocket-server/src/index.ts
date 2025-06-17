@@ -6,6 +6,7 @@ import {
 	INIT_GAME,
 	JOIN_ROOM,
 	NUMBER_ADDED,
+	TIMER_ENDED,
 } from "./messages/messages";
 import { Game } from "./game/Game";
 import { gameManager } from "./game/GameManager";
@@ -83,6 +84,11 @@ wss.on("connection", function connection(ws, req) {
 				case CLEAR_CELL:
 					const clearCellGame = gameManager.findGame(params.roomId);
 					clearCellGame.clearValue(params.userId, params.index);
+					break;
+				case TIMER_ENDED:
+					const timerEndedGame = gameManager.findGame(params.roomId);
+					timerEndedGame.endTimer(params.userId);
+					break;
 				default:
 					break;
 			}

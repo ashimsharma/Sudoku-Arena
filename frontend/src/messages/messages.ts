@@ -4,6 +4,7 @@ export const JOIN_ROOM = "join_room";
 export const INIT_GAME = "init_game";
 export const ADD_NUMBER = "add_number";
 export const CLEAR_CELL = "clear_cell";
+export const TIMER_ENDED = "timer_ended";
 
 // Backend Messages
 export const ROOM_CREATED = "room_created";
@@ -35,7 +36,14 @@ export const OPPONENT_CORRECT_CELL = "opponent_correct_cell";
 
 export const OPPONENT_MISTAKE = "opponent_mistake";
 
-export const BOARD_COMPELTE = "board_complete";
 export const OPPONENT_BOARD_COMPELTE = "opponent_board_complete";
 
 export const ALREADY_ON_CORRECT_POSITION = "already_on_correct_position";
+
+export const GAME_ENDED = "game_ended";
+
+export const GAME_ALREADY_ENDED = "game_already_ended";
+
+// Extras 
+export const TIMER_COMPLETE = "timer_complete";
+export const BOARD_COMPELTE = "board_complete";

@@ -1,10 +1,13 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { GameContext } from "./GameBoardScreen";
 import { useSelector } from "react-redux";
+import { getSocket } from "../config/socket.config";
+import { TIMER_ENDED } from "../messages/messages";
 
 export default function TimerPallet() {
 	const [timeLeft, setTimeLeft] = useState(10 * 60);
 	const [endTime, setEndTime] = useState<null | number>(null);
+	const gameId = useSelector((state: any) => state.game).gameId;
 
 	const totalMistakes: number = useSelector(
 		(state: any) => state.game
@@ -22,8 +25,19 @@ export default function TimerPallet() {
 			const remaining = Math.max(Math.floor((end - now) / 1000), 0);
 			setTimeLeft(remaining);
 
-			if (remaining === 0) clearInterval(interval);
-		}, 500); // 500ms = smoother accuracy
+			if (remaining === 0) {
+				let socket = getSocket();
+				socket?.send(JSON.stringify(
+					{
+						type: TIMER_ENDED,
+						params: {
+							roomId: gameId
+						}
+					}
+				))
+				clearInterval(interval);
+			};
+		}, 500); 
 
 		return () => clearInterval(interval);
 	}, []);

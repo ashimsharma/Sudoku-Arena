@@ -9,6 +9,7 @@ import {
 	CELL_CLEARED,
 	CLEAR_CELL,
 	CORRECT_CELL,
+	GAME_ENDED,
 	OPPONENT_CORRECT_CELL,
 	OPPONENT_MISTAKE,
 	OPPONENT_MISTAKES_COMPLETE,
@@ -17,10 +18,14 @@ import {
 } from "../messages/messages";
 import {
 	setCurrentGameState,
+	setGameEndReason,
 	setMeProgress,
 	setOpponentMistakes,
 	setOpponentProgress,
+	setOpponentTimeTaken,
 	setTotalMistakes,
+	setWinner,
+	setYourTimeTaken,
 } from "../redux/gameSlice";
 
 type CurrentGameStateData = {
@@ -43,6 +48,7 @@ interface GameContextType {
 	forceReRender: boolean;
 	popupProperties: PopupProperties;
 	setPopupProperties: any;
+	gameEnded: boolean;
 }
 
 interface PopupProperties {
@@ -69,6 +75,7 @@ export default function GameBoardScreen() {
 
 	const [score, setScore] = useState(0);
 	const [timerEnded, setTimerEnded] = useState(false);
+	const [gameEnded, setGameEnded] = useState(false);
 
 	const keyPressed = useRef(false);
 
@@ -199,6 +206,49 @@ export default function GameBoardScreen() {
 						opponentMistakes: data.opponentMistakes
 					})
 				)
+				break;
+			case GAME_ENDED:
+				dispatch(
+					setWinner({
+						winner: data.result.winner
+					})
+				)
+				dispatch(
+					setMeProgress({
+						meProgress: data.result.yourPercentageComplete,
+					})
+				)
+				dispatch(
+					setOpponentProgress({
+						opponentProgress: data.result.opponentPercentageComplete
+					})
+				)
+				dispatch(
+					setTotalMistakes({
+						totalMistakes: data.result.yourMistakes
+					})
+				)
+				dispatch(
+					setOpponentMistakes({
+						opponentMistakes: data.result.opponentMistakes
+					})
+				)
+				dispatch(
+					setYourTimeTaken({
+						yourTimeTaken: data.result.yourTimeTaken
+					})
+				)
+				dispatch(
+					setOpponentTimeTaken({
+						opponentTimeTaken: data.result.opponentTimeTaken
+					})
+				)
+				dispatch(
+					setGameEndReason({
+						gameEndReason: data.result.gameEndReason
+					})
+				)
+				setGameEnded(true);
 				break;
 		}
 	};
@@ -337,11 +387,12 @@ export default function GameBoardScreen() {
 				setForceReRender,
 				forceReRender,
 				popupProperties,
-				setPopupProperties
+				setPopupProperties,
+				gameEnded
 			}}
 		>
 			<div className="min-h-screen bg-gray-800 text-white">
-				<ResultModal />
+				{gameEnded && <ResultModal />}
 				<div className="py-6 bg-gray-900 shadow-lg">
 					<h1 className="p-4 text-center text-3xl font-bold text-red-500">
 						{type === "creator" ? me.name : opponent.name}'s GAME

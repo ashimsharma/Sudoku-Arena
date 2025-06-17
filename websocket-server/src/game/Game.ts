@@ -22,6 +22,9 @@ import {
 	ALREADY_ON_CORRECT_POSITION,
 	CELL_CLEARED,
 	OPPONENT_GAME_INITIATED,
+	GAME_ENDED,
+	GAME_ALREADY_ENDED,
+	TIMER_COMPLETE,
 } from "../messages/messages";
 
 type Options = {
@@ -55,6 +58,7 @@ export class Game {
 		mistakes: number;
 		correctAdditions: 0;
 		percentageComplete: number;
+		timeTaken: number;
 	};
 	private joiner?: {
 		id: string;
@@ -67,6 +71,7 @@ export class Game {
 		mistakes: number;
 		correctAdditions: number;
 		percentageComplete: number;
+		timeTaken: number;
 	};
 	private options: Options;
 	private initialGameState: CurrentGameStateData[] = [];
@@ -75,6 +80,9 @@ export class Game {
 	private emptyCells: number = 0;
 	private readonly totalAllowedMistakes: number = 5;
 	private startTime: number = 0;
+	private timerEnded: boolean = false;
+	private gameEnded: boolean = false;
+	private readonly gameDuration: number = 600000;
 
 	constructor(creatingPlayer: WebSocket, params: any) {
 		this.creator = {
@@ -88,6 +96,7 @@ export class Game {
 			correctAdditions: 0,
 			mistakes: 0,
 			percentageComplete: 0,
+			timeTaken: 0,
 		};
 
 		this.getCreator(connectionUserIds.get(creatingPlayer));
@@ -196,6 +205,7 @@ export class Game {
 			mistakes: 0,
 			percentageComplete: 0,
 			correctAdditions: 0,
+			timeTaken: 0,
 		};
 
 		connectionUserIds.delete(joiningPlayer);
@@ -427,7 +437,7 @@ export class Game {
 					this.joiner?.socket.send(
 						JSON.stringify({
 							type: OPPONENT_MISTAKES_COMPLETE,
-							opponentMistakes: this.creator.mistakes
+							opponentMistakes: this.creator.mistakes,
 						})
 					);
 				} else if (
@@ -437,7 +447,7 @@ export class Game {
 					this.creator.socket.send(
 						JSON.stringify({
 							type: OPPONENT_MISTAKES_COMPLETE,
-							opponentMistakes: this.joiner?.mistakes
+							opponentMistakes: this.joiner?.mistakes,
 						})
 					);
 				} else if (
@@ -478,33 +488,10 @@ export class Game {
 
 			user.percentageComplete = percentageComplete;
 
-			const isComplete = this.checkIfBoardComplete(user);
+			const isComplete = this.checkIfBoardComplete(userId);
 
-			if (isComplete) {
-				user?.socket.send(
-					JSON.stringify({
-						type: BOARD_COMPELTE,
-						percentageComplete,
-						currentGameState: user?.currentGameState,
-					})
-				);
-
-				if (user?.type === "creator") {
-					this.joiner?.socket.send(
-						JSON.stringify({
-							type: OPPONENT_BOARD_COMPELTE,
-							percentageComplete,
-						})
-					);
-				} else {
-					this.creator.socket.send(
-						JSON.stringify({
-							type: OPPONENT_BOARD_COMPELTE,
-							percentageComplete,
-						})
-					);
-				}
-
+			if(isComplete){
+				this.endGame(userId);
 				return;
 			}
 
@@ -571,11 +558,137 @@ export class Game {
 			})
 		);
 	}
-	checkIfBoardComplete(user: any) {
-		if (
-			JSON.stringify(user?.currentGameState) ===
-			JSON.stringify(this.solution)
-		) {
+
+	endGame(userId: string) {
+		const user = userId === this.creator.id ? this.creator : this.joiner;
+
+		if (this.gameEnded) {
+			user?.socket.send(
+				JSON.stringify({
+					type: GAME_ALREADY_ENDED,
+				})
+			);
+			return;
+		}
+
+		this.gameEnded = true;
+
+		if (!user) {
+			return;
+		}
+
+		if (!this.joiner) {
+			return;
+		}
+
+		this.creator.timeTaken = Date.now() - this.startTime;
+		this.joiner.timeTaken = Date.now() - this.startTime;
+
+		let opponent = user.type === "creator" ? this.joiner : this.creator;
+
+		user.socket.send(
+			JSON.stringify({
+				type: GAME_ENDED,
+				result: {
+					winner: user.type,
+					yourPercentageComplete: user.percentageComplete,
+					opponentPercentageComplete: opponent.percentageComplete,
+					yourMistakes: user.mistakes,
+					opponentMistakes: opponent.mistakes,
+					yourTimeTaken: user.timeTaken,
+					opponentTimeTaken: opponent.timeTaken,
+					gameEndReason: BOARD_COMPELTE,
+				},
+			})
+		);
+
+		opponent.socket.send(
+			JSON.stringify({
+				type: GAME_ENDED,
+				result: {
+					winner: user.type,
+					yourPercentageComplete: user.percentageComplete,
+					opponentPercentageComplete: opponent.percentageComplete,
+					yourMistakes: user.mistakes,
+					opponentMistakes: opponent.mistakes,
+					yourTimeTaken: user.timeTaken,
+					opponentTimeTaken: opponent.timeTaken,
+					gameEndReason: BOARD_COMPELTE,
+				},
+			})
+		);
+	}
+
+	endTimer(userId: string) {
+		const user = userId === this.creator.id ? this.creator : this.joiner;
+
+		if (this.gameEnded) {
+			user?.socket.send(
+				JSON.stringify({
+					type: GAME_ALREADY_ENDED,
+				})
+			);
+			return;
+		}
+
+		this.timerEnded = true;
+		this.gameEnded = true;
+
+		if (!user) {
+			return;
+		}
+
+		if (!this.joiner) {
+			return;
+		}
+
+		this.creator.timeTaken = this.gameDuration;
+		this.joiner.timeTaken = this.gameDuration;
+
+		let winner =
+			this.creator.percentageComplete > this.joiner?.percentageComplete
+				? "creator"
+				: "joiner";
+
+		let opponent = user.type === "creator" ? this.joiner : this.creator;
+
+		user.socket.send(
+			JSON.stringify({
+				type: GAME_ENDED,
+				result: {
+					winner: winner,
+					yourPercentageComplete: user.percentageComplete,
+					opponentPercentageComplete: opponent.percentageComplete,
+					yourMistakes: user.mistakes,
+					opponentMistakes: opponent.mistakes,
+					yourTimeTaken: user.timeTaken,
+					opponentTimeTaken: opponent.timeTaken,
+					gameEndReason: TIMER_COMPLETE,
+				},
+			})
+		);
+
+		opponent.socket.send(
+			JSON.stringify({
+				type: GAME_ENDED,
+				result: {
+					winner: winner,
+					yourPercentageComplete: opponent.percentageComplete,
+					opponentPercentageComplete: user.percentageComplete,
+					yourMistakes: opponent.mistakes,
+					opponentMistakes: user.mistakes,
+					yourTimeTaken: opponent.timeTaken,
+					opponentTimeTaken: user.timeTaken,
+					gameEndReason: TIMER_COMPLETE,
+				},
+			})
+		);
+	}
+
+	checkIfBoardComplete(userId: string) {
+		const user = this.creator.id === userId ? this.creator : this.joiner;
+
+		if (user?.percentageComplete === 100) {
 			return true;
 		}
 

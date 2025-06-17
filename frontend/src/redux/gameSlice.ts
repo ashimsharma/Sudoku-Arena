@@ -18,6 +18,10 @@ interface InitialState {
     totalMistakes: number
     opponentMistakes: number
     startTime: number
+    yourTimeTaken: number
+    opponentTimeTaken: number,
+    winner: string,
+    gameEndReason: string
 }
 
 const initialState: InitialState = {
@@ -31,7 +35,11 @@ const initialState: InitialState = {
     opponentProgress: 0,
     totalMistakes: 0,
     opponentMistakes: 0,
-    startTime: 0
+    startTime: 0,
+    yourTimeTaken: 0,
+    opponentTimeTaken: 0,
+    winner: "",
+    gameEndReason: ""
 }
 
 const gameSlice = createSlice({
@@ -70,9 +78,21 @@ const gameSlice = createSlice({
         },
         setStartTime: (state, action) => {
             state.startTime = action.payload.startTime;
+        },
+        setYourTimeTaken: (state, action) => {
+            state.yourTimeTaken = action.payload.yourTimeTaken;
+        },
+        setOpponentTimeTaken: (state, action) => {
+            state.opponentTimeTaken = action.payload.opponentTimeTaken;
+        },
+        setWinner: (state, action) => {
+            state.winner = action.payload.winner;
+        },
+        setGameEndReason: (state, action) => {
+            state.gameEndReason = action.payload.gameEndReason;
         }
     },
 });
 
-export const { setGameId, setMe, setOpponent, setMeType, setInitialGameState, setCurrentGameState, setMeProgress, setOpponentProgress, setTotalMistakes, setOpponentMistakes, setStartTime } = gameSlice.actions;
+export const { setGameId, setMe, setOpponent, setMeType, setInitialGameState, setCurrentGameState, setMeProgress, setOpponentProgress, setTotalMistakes, setOpponentMistakes, setStartTime, setYourTimeTaken, setOpponentTimeTaken, setWinner, setGameEndReason } = gameSlice.actions;
 export default gameSlice.reducer;
