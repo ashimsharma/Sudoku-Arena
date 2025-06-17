@@ -70,6 +70,22 @@ const GameBoard = () => {
 		return `${row}-${column}-${block}`;
 	};
 
+	const wrongCellReason = (i: number): boolean => {
+		const row = Math.floor(i / 9);
+		const column = i % 9;
+		const block =
+			Math.floor(Math.floor(i / 9) / 3) * 3 + Math.floor(column / 3);
+
+		const selectedIndexRow = Math.floor(selectedCellIndex.current / 9);
+		const selectedIndexColumn = selectedCellIndex.current % 9;
+		const selectedIndexBlock = Math.floor(Math.floor(selectedCellIndex.current / 9) / 3) * 3 + Math.floor(selectedIndexColumn / 3);
+
+		if((row === selectedIndexRow) || (column === selectedIndexColumn) || (block === selectedIndexBlock)){
+			return true;
+		}
+
+		return false;
+	}
 	return (
 		<div className="relative grid grid-cols-9 grid-rows-9 rounded-md w-full bg-blue-50">
 			<div className="absolute left-1/2 top-10 -translate-x-1/2">
@@ -99,7 +115,9 @@ const GameBoard = () => {
 					isBottomEdge(i) ? "border-b-4" : "",
 					isRightEdge(i) ? "border-r-4" : "",
 					(cell.canBeTyped && !cell.isOnCorrectPosition) && "text-red-600",
-					(!initialGameState[i].digit && cell.isOnCorrectPosition) && "text-green-600"
+					(!initialGameState[i].digit && cell.isOnCorrectPosition) && "text-green-600",
+					(cell.digit !== null && cell.digit === game[selectedCellIndex.current]?.digit) && 'bg-gray-400',
+					(cell.digit !== null && cell.digit === game[selectedCellIndex.current]?.digit && !game[selectedCellIndex.current]?.isOnCorrectPosition && wrongCellReason(i)) && 'bg-red-200'
 				].join(" ");
 
 				return (

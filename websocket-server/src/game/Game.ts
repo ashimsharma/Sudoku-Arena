@@ -379,6 +379,14 @@ export class Game {
 				return;
 			}
 
+			if (this.gameEnded) {
+				user?.socket.send(
+					JSON.stringify({
+						type: GAME_ALREADY_ENDED,
+					})
+				);
+				return;
+			}
 			if (user.mistakes === this.totalAllowedMistakes) {
 				user.socket.send(
 					JSON.stringify({
@@ -490,7 +498,7 @@ export class Game {
 
 			const isComplete = this.checkIfBoardComplete(userId);
 
-			if(isComplete){
+			if (isComplete) {
 				this.endGame(userId);
 				return;
 			}
@@ -650,6 +658,17 @@ export class Game {
 				? "creator"
 				: "joiner";
 
+		if (
+			this.creator.percentageComplete === this.joiner?.percentageComplete
+		) {
+			if (this.creator.mistakes > this.joiner.mistakes) {
+				winner = "joiner";
+			} else if (this.creator.mistakes < this.joiner.mistakes) {
+				winner = "creator";
+			} else {
+				winner = "draw";
+			}
+		}
 		let opponent = user.type === "creator" ? this.joiner : this.creator;
 
 		user.socket.send(

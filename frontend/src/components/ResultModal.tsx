@@ -36,8 +36,9 @@ function ResultModal() {
 	return (
 		<div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
 			<div className="bg-gray-800 rounded-2xl p-4 shadow-2xl text-center w-fit border border-gray-700">
-				<h1 className="text-2xl font-bold text-white mb-6 animate-pulse">{gameEndReason === TIMER_COMPLETE && "Timer Ended"}</h1>
+				<h1 className="text-2xl font-bold text-white mb-6 animate-pulse">{(gameEndReason === TIMER_COMPLETE && winner !== "draw") && "Timer Ended"}</h1>
 				<h1 className="text-2xl font-bold text-white mb-6 animate-pulse">{gameEndReason === BOARD_COMPELTE && (winner === meType ? `${me.name.split(' ')[0]}'s Board Complete` : `${opponent.name.split(' ')[0]}'s Board Complete`)}</h1>
+				<h1>{(winner === "draw") && "It's a Draw"}</h1>
 				<div className="flex justify-center items-center gap-4">
 					<div className="flex justify-center items-center flex-col mb-4">
 						<div className="flex justify-center items-center">
