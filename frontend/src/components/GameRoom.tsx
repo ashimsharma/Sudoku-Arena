@@ -16,6 +16,7 @@ import {
 	setOpponent,
 	setCurrentGameState,
 	setStartTime,
+	setGameDuration,
 } from "../redux/gameSlice";
 import LoaderModal from "./LoaderModal";
 
@@ -71,6 +72,11 @@ const GameRoom = () => {
 				dispatch(
 					setStartTime({
 						startTime: data.data.startTime,
+					})
+				)
+				dispatch(
+					setGameDuration({
+						gameDuration: data.data.gameDuration,
 					})
 				)
 				break;

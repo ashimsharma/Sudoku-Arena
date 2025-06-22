@@ -14,9 +14,9 @@ export default function TimerPallet() {
 	).totalMistakes;
 
 	const start = useSelector((state: any) => state.game).startTime;
-	
+	const duration = useSelector((state: any) => state.game).gameDuration;
+
 	useEffect(() => {
-		const duration = 10 * 60 * 1000; 
 		const end = start + duration;
 		setEndTime(end);
 

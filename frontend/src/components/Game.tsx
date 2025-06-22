@@ -103,10 +103,10 @@ const Game = () => {
 
 	const onCreate = ({
 		difficulty,
-		gameType,
+		gameTime,
 	}: {
 		difficulty: string;
-		gameType: string;
+		gameTime: number;
 	}) => {
 		setCreateRoomModalOpened(false);
 
@@ -115,7 +115,7 @@ const Game = () => {
 				type: CREATE_ROOM,
 				params: {
 					difficulty,
-					gameType,
+					gameTime,
 				},
 			})
 		);

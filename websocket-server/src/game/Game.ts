@@ -29,15 +29,10 @@ import {
 
 type Options = {
 	difficulty: Difficulty;
-	gameType: GameTypes;
+	gameTime: number;
 };
 
 type Difficulty = "easy" | "medium" | "hard" | "expert";
-
-enum GameTypes {
-	timeBased = "timeBased",
-	completionBased = "completionBased",
-}
 
 type CurrentGameStateData = {
 	digit: number | null;
@@ -82,7 +77,7 @@ export class Game {
 	private startTime: number = 0;
 	private timerEnded: boolean = false;
 	private gameEnded: boolean = false;
-	private readonly gameDuration: number = 600000;
+	private readonly gameDuration: number = 0; // 600000 ms -> 10 minutes
 
 	constructor(creatingPlayer: WebSocket, params: any) {
 		this.creator = {
@@ -105,6 +100,7 @@ export class Game {
 		connectionUserIds.delete(creatingPlayer);
 
 		this.options = params;
+		this.gameDuration = this.options.gameTime * 60 * 1000;
 		this.createGameInDB();
 	}
 
@@ -315,6 +311,7 @@ export class Game {
 						initialGameState: this.initialGameState,
 						currentGameState: this.creator.currentGameState,
 						startTime: this.startTime,
+						gameDuration: this.gameDuration,
 					},
 				})
 			);
@@ -325,6 +322,7 @@ export class Game {
 						initialGameState: this.initialGameState,
 						currentGameState: this.joiner?.currentGameState,
 						startTime: this.startTime,
+						gameDuration: this.gameDuration,
 					},
 				})
 			);
@@ -356,7 +354,6 @@ export class Game {
 
 			return true;
 		} catch (error) {
-			console.log(error);
 			return false;
 		}
 	}
@@ -479,6 +476,7 @@ export class Game {
 						})
 					);
 				}
+				this.updateGameInDB((this.gameId as string), userId);
 				return;
 			}
 
@@ -495,6 +493,8 @@ export class Game {
 			);
 
 			user.percentageComplete = percentageComplete;
+
+			this.updateGameInDB((this.gameId as string), userId);
 
 			const isComplete = this.checkIfBoardComplete(userId);
 
@@ -531,6 +531,34 @@ export class Game {
 		}
 	}
 
+	async updateGameInDB(gameId: string, userId: string) {
+		try {
+			const user = userId === this.creator.id ? this.creator : this.joiner;
+
+			await prisma.gamePlayer.update({
+				where: {
+					userId_gameId: {
+						userId: userId,
+						gameId: gameId,
+					},
+				},
+				data: {
+					gameData: {
+						initialGameState: this.initialGameState,
+						solution: this.solution,
+						currentGameState: user?.currentGameState,
+						mistakes: user?.mistakes,
+						percentageComplete: user?.percentageComplete,
+					},
+				},
+			});
+
+			return true;
+		} catch (error) {
+			return false;
+		}
+	}
+
 	clearValue(userId: string, index: number) {
 		const user = userId === this.creator.id ? this.creator : this.joiner;
 
@@ -558,6 +586,8 @@ export class Game {
 		user.currentGameState[index].digit = null;
 		user.currentGameState[index].canBeTyped = true;
 		user.currentGameState[index].isOnCorrectPosition = true;
+
+		this.updateGameInDB((this.gameId as string), userId);
 
 		user.socket.send(
 			JSON.stringify({
@@ -594,6 +624,8 @@ export class Game {
 
 		let opponent = user.type === "creator" ? this.joiner : this.creator;
 
+		this.endGameInDB(userId);
+
 		user.socket.send(
 			JSON.stringify({
 				type: GAME_ENDED,
@@ -625,6 +657,25 @@ export class Game {
 				},
 			})
 		);
+	}
+
+	async endGameInDB(userId: string){
+		try {
+			const user = userId === this.creator.id ? this.creator : this.joiner;
+
+			await prisma.game.update({
+				where: {
+					id: this.gameId
+				},
+				data: {
+					winnerId: (user?.id as string),
+					status: GameStatus.COMPLETED,
+					draw: false
+				}
+			});
+		} catch (error) {
+			console.log(error);
+		}
 	}
 
 	endTimer(userId: string) {
@@ -671,6 +722,8 @@ export class Game {
 		}
 		let opponent = user.type === "creator" ? this.joiner : this.creator;
 
+		this.endTimerInDB(winner);
+
 		user.socket.send(
 			JSON.stringify({
 				type: GAME_ENDED,
@@ -702,6 +755,54 @@ export class Game {
 				},
 			})
 		);
+	}
+
+	async endTimerInDB(winner: string){
+		try {
+			if(winner === "draw"){
+				await prisma.game.update(
+					{
+						where: {
+							id: this.gameId
+						},
+						data: {
+							draw: true,
+							status: GameStatus.COMPLETED
+						}
+					}
+				)
+			}
+			else if(winner === "creator"){
+				await prisma.game.update(
+					{
+						where: {
+							id: this.gameId
+						},
+						data: {
+							winnerId: this.creator.id,
+							draw: false,
+							status: GameStatus.COMPLETED
+						}
+					}
+				)
+			}
+			else if(winner === "joiner"){
+				await prisma.game.update(
+					{
+						where: {
+							id: this.gameId
+						},
+						data: {
+							winnerId: this.joiner?.id,
+							draw: false,
+							status: GameStatus.COMPLETED
+						}
+					}
+				)
+			}
+		} catch (error) {
+			console.log(error);
+		}
 	}
 
 	checkIfBoardComplete(userId: string) {
