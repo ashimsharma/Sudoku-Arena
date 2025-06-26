@@ -662,8 +662,9 @@ export class Game {
 	async endGameInDB(userId: string){
 		try {
 			const user = userId === this.creator.id ? this.creator : this.joiner;
+			const opponent = userId === this.creator.id ? this.joiner : this.creator;
 
-			await prisma.game.update({
+			const gameUpdated = await prisma.game.update({
 				where: {
 					id: this.gameId
 				},
@@ -673,6 +674,36 @@ export class Game {
 					draw: false
 				}
 			});
+
+			if(!gameUpdated){
+				throw new Error("Game Update Failed.")
+			}
+
+			await prisma.user.update(
+				{
+					where: {
+						id: user?.id
+					},
+					data: {
+						noOfWins: {
+							increment: 1
+						}
+					}
+				}
+			)
+
+			await prisma.user.update(
+				{
+					where: {
+						id: opponent?.id
+					},
+					data: {
+						noOfLosses: {
+							increment: 1
+						}
+					}
+				}
+			)
 		} catch (error) {
 			console.log(error);
 		}
@@ -760,7 +791,7 @@ export class Game {
 	async endTimerInDB(winner: string){
 		try {
 			if(winner === "draw"){
-				await prisma.game.update(
+				const gameUpdated = await prisma.game.update(
 					{
 						where: {
 							id: this.gameId
@@ -771,9 +802,39 @@ export class Game {
 						}
 					}
 				)
+
+				if(!gameUpdated){
+					throw new Error("Game Update Failed.");
+				}
+
+				await prisma.user.update(
+					{
+						where: {
+							id: this.creator.id
+						},
+						data: {
+							noOfDraws: {
+								increment: 1
+							}
+						}
+					}
+				);
+
+				await prisma.user.update(
+					{
+						where: {
+							id: this.joiner?.id
+						},
+						data: {
+							noOfDraws: {
+								increment: 1
+							}
+						}
+					}
+				)
 			}
 			else if(winner === "creator"){
-				await prisma.game.update(
+				const gameUpdated = await prisma.game.update(
 					{
 						where: {
 							id: this.gameId
@@ -785,9 +846,39 @@ export class Game {
 						}
 					}
 				)
+
+				if(!gameUpdated){
+					throw new Error("Game Update Failed.")
+				}
+
+				await prisma.user.update(
+					{
+						where: {
+							id: this.creator.id
+						},
+						data: {
+							noOfWins: {
+								increment: 1
+							}
+						}
+					}
+				)
+
+				await prisma.user.update(
+					{
+						where: {
+							id: this.joiner?.id
+						},
+						data: {
+							noOfLosses: {
+								increment: 1
+							}
+						}
+					}
+				)
 			}
 			else if(winner === "joiner"){
-				await prisma.game.update(
+				const gameUpdated = await prisma.game.update(
 					{
 						where: {
 							id: this.gameId
@@ -796,6 +887,36 @@ export class Game {
 							winnerId: this.joiner?.id,
 							draw: false,
 							status: GameStatus.COMPLETED
+						}
+					}
+				)
+
+				if(!gameUpdated){
+					throw new Error("Game Update Failed.")
+				}
+
+				await prisma.user.update(
+					{
+						where: {
+							id: this.joiner?.id
+						},
+						data: {
+							noOfWins: {
+								increment: 1
+							}
+						}
+					}
+				)
+
+				await prisma.user.update(
+					{
+						where: {
+							id: this.creator.id
+						},
+						data: {
+							noOfLosses: {
+								increment: 1
+							}
 						}
 					}
 				)

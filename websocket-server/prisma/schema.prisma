@@ -20,7 +20,11 @@ model User {
   name      String
   avatarUrl String?
   games     GamePlayer[]
-  wonGames  Game[]
+  wonGames  Game[]   @relation("UserWonGames")
+
+  noOfWins   Int  @default(0)
+  noOfLosses   Int @default(0)
+  noOfDraws   Int @default(0)
 }
 
 enum GameStatus {
@@ -31,15 +35,15 @@ enum GameStatus {
 
 model Game {
   id      String       @id @default(uuid())
-  players GamePlayer[]
+  players GamePlayer[]    @relation("UserGame")
 
   options Json
 
   createdAt DateTime   @default(now())
-  updateAt  DateTime   @updatedAt
+  updatedAt  DateTime   @updatedAt
   status    GameStatus
-  winner    User?      @relation(fields: [winnerId], references: [id])
-  winnerId  String?
+  winner    User?      @relation("UserWonGames", fields: [winnerId], references: [id])
+  winnerId  String?    
 
   draw  Boolean?
 }
@@ -48,7 +52,7 @@ model GamePlayer {
   id    String @id @default(uuid())
   score Int    @default(0)
 
-  game   Game   @relation(fields: [gameId], references: [id])
+  game   Game   @relation("UserGame", fields: [gameId], references: [id])
   gameId String
 
   gameData Json?

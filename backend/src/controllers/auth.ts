@@ -1,6 +1,7 @@
 import { CookieOptions, NextFunction, Request, Response } from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
+import prisma from "../db";
 
 function githubLogin(req: Request, res: Response, next: NextFunction) {
   passport.authenticate("github", { scope: ["user"] })(req, res, next);
@@ -88,4 +89,5 @@ function isAuthenticated(req: Request, res: Response){
     )
   }
 }
+
 export { githubLogin, githubLoginCallback, googleLogin, googleLoginCallback, isAuthenticated };
