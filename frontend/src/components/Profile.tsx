@@ -9,7 +9,7 @@ export default function Profile() {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
-    const user = useSelector((state: any) => state.user).user;
+	const user = useSelector((state: any) => state.user).user;
 
 	useEffect(() => {
 		(async () => {
@@ -28,8 +28,9 @@ export default function Profile() {
 		navigate("/");
 	};
 
-	return (
-        loading ? <p className="text-white">Loading...</p> :
+	return loading ? (
+		<p className="text-white">Loading...</p>
+	) : (
 		<div className="min-h-screen bg-gray-900 p-4">
 			<div className="flex mb-4">
 				<button
@@ -40,34 +41,45 @@ export default function Profile() {
 					<span className="text-lg font-medium">Back</span>
 				</button>
 			</div>
-            <div className="p-3 bg-gray-700 w-1/2 rounded-lg m-auto grid grid-cols-5 justify-center">
-                <div className="col-span-2 flex flex-col">
-                    <div className="flex justify-center">
-                        <img src={user.avatarUrl} alt="Avatar URL" className="w-52 h-52 rounded-full"/>
-                    </div>
-                    <div className="text-white text-[40px] text-center">{user.name}</div>
-                </div>
-                <div className="col-span-3 flex justify-center items-center">
-                    <div className="bg-gray-800 grid grid-cols-4 rounded-lg gap-4 p-2 text-gray-300">
-                        <div className="flex flex-col justify-center items-center">
-                            <h1 className="text-[25px]">Total</h1>
-                            <div className="text-xl">{user.noOfWins + user.noOfLosses + user.noOfDraws}</div>
-                        </div>
-                        <div className="flex flex-col justify-center items-center text-green-500">
-                            <h1 className="text-[25px]">Won</h1>
-                            <div className="text-xl">{user.noOfWins}</div>
-                        </div>
-                        <div className="flex flex-col justify-center items-center text-yellow-500">
-                            <h1 className="text-[25px]">Draw</h1>
-                            <div className="text-xl">{user.noOfDraws}</div>
-                        </div>
-                        <div className="flex flex-col justify-center items-center text-red-500">
-                            <h1 className="text-[25px]">Lost</h1>
-                            <div className="text-xl">{user.noOfLosses}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+			<div className="max-w-sm mx-auto bg-gray-800 text-white rounded-2xl shadow-xl p-6 space-y-4">
+				<div className="flex justify-center h-44">
+					<img src={user.avatarUrl} alt="Avatar URL" className="h-15 w-15 object-cover rounded-full" />
+				</div>
+
+				<div className="text-center">
+					<h2 className="text-2xl font-semibold">{user.name}</h2>
+					<p className="text-gray-400">
+						Rank:{" "}
+						<span className="text-yellow-400 font-medium">#42</span>
+					</p>
+				</div>
+
+				<div className="grid grid-cols-2 gap-4 text-center">
+					<div className="group cursor-pointer">
+						<p className="text-sm text-gray-400 group-hover:underline">Total Games</p>
+						<p className="text-xl font-bold">{user.noOfWins + user.noOfDraws + user.noOfLosses}</p>
+					</div>
+					<div className="group cursor-pointer">
+						<p className="text-sm text-gray-400 group-hover:underline">Friends</p>
+						<p className="text-xl font-bold">23</p>
+					</div>
+				</div>
+
+				<div className="grid grid-cols-3 gap-4 text-center mt-2">
+					<div>
+						<p className="text-sm text-gray-400">Wins</p>
+						<p className="text-xl font-bold text-green-400">{user.noOfWins}</p>
+					</div>
+					<div>
+						<p className="text-sm text-gray-400">Draws</p>
+						<p className="text-xl font-bold text-yellow-400">{user.noOfDraws}</p>
+					</div>
+					<div>
+						<p className="text-sm text-gray-400">Losses</p>
+						<p className="text-xl font-bold text-red-400">{user.noOfLosses}</p>
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }
