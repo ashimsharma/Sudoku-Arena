@@ -585,7 +585,7 @@ export class Game {
 
 		user.currentGameState[index].digit = null;
 		user.currentGameState[index].canBeTyped = true;
-		user.currentGameState[index].isOnCorrectPosition = true;
+		user.currentGameState[index].isOnCorrectPosition = true; 
 
 		this.updateGameInDB((this.gameId as string), userId);
 

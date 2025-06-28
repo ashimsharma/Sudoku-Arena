@@ -43,7 +43,7 @@ export default function Home() {
 						New Game
 					</button>
 					<div className="mt-10">
-						<div className="flex justify-between animate-slide-in">
+						<div className="flex justify-between">
 							<FaCircleUser/>
 							<FaCircleUser/>
 						</div>

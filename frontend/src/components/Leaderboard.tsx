@@ -23,8 +23,6 @@ const Leaderboard = () => {
 
 			if (response) {
 				dispatch(setUser({ user: response.data.data.user }));
-
-				setLoading(false);
 			} else {
 				navigate("/login");
 			}
