@@ -73,7 +73,7 @@ export default function Profile() {
 				</div>
 
 				<div className="grid grid-cols-2 gap-4 text-center">
-					<div className="group cursor-pointer">
+					<div className="group cursor-pointer" onClick={() => navigate("/profile/all-games")}>
 						<p className="text-sm text-gray-400 group-hover:underline">Total Games</p>
 						<p className="text-xl font-bold">{profile.noOfWins + profile.noOfDraws + profile.noOfLosses}</p>
 					</div>

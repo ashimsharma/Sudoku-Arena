@@ -43,7 +43,6 @@ const Leaderboard = () => {
 						withCredentials: true,
 					}
 				);
-
 				if (data) {
 					console.log(data.data.data.leaderboard);
 					setLeaderboard(data.data.data.leaderboard);

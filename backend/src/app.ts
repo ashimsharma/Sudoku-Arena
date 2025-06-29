@@ -5,6 +5,7 @@ import passport from "./config/passport";
 import cors from 'cors';
 import cookieParser from "cookie-parser";
 import leaderboardRouter from "./routes/leaderboard.routes";
+import userRouter from "./routes/user.routes";
 
 const app = express();
 
@@ -21,5 +22,6 @@ app.use(passport.initialize());
 
 app.use("/auth", authRouter);
 app.use("/leaderboard", leaderboardRouter);
+app.use("/user", userRouter);
 
 export {app};
