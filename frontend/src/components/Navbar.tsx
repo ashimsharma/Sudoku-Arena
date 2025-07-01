@@ -1,5 +1,6 @@
 import { FaCircleUser } from "react-icons/fa6";
 import { NavLink, useNavigate } from "react-router-dom";
+import { FaUserFriends } from "react-icons/fa";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -39,9 +40,13 @@ const Navbar = () => {
 							Leaderboard
 						</NavLink>
 					</div>
+					<div className="items-center justify-center inline-flex text-white hover:text-red-500 h-full cursor-pointer" onClick={() => navigate("/friend-requests")}>
+						<FaUserFriends size={35} />
+					</div>
 					<div className="items-center justify-center inline-flex text-white hover:text-red-500 h-full cursor-pointer" onClick={() => navigate("/profile")}>
 						<FaCircleUser size={35} />
 					</div>
+					
 				</div>
 			</div>
 		</nav>

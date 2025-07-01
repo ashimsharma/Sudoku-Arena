@@ -2,6 +2,7 @@ import { CookieOptions, NextFunction, Request, Response } from "express";
 import passport, { use } from "passport";
 import jwt from "jsonwebtoken";
 import prisma from "../db";
+import { FriendRequestStatus } from "@prisma/client";
 
 function githubLogin(req: Request, res: Response, next: NextFunction) {
 	passport.authenticate("github", { scope: ["user"] })(req, res, next);
@@ -83,6 +84,8 @@ function isAuthenticated(req: Request, res: Response) {
 
 async function getProfile(req: Request, res: Response) {
 	try {
+		const user: any = req.user;
+
 		const result: any[] = await prisma.$queryRaw`
 	  SELECT rank FROM (
 	    SELECT id, RANK() OVER (
@@ -103,12 +106,29 @@ async function getProfile(req: Request, res: Response) {
 			return;
 		}
 
-		(req.user as any).rank = Number(result[0].rank);
+		const totalFriends  = await prisma.friend.findMany(
+            {
+                where: {
+                    status: FriendRequestStatus.ACCEPTED,
+                    OR: [
+                        {
+                            requesterId: user.id
+                        },
+                        {
+                            receiverId: user.id
+                        }
+                    ]
+                }
+            }
+        );
 
+		user.rank = Number(result[0].rank);
+		user.totalFriends = totalFriends.length;
+		
 		res.status(200).json({
 			statusCode: 200,
 			success: true,
-			data: { user: req.user },
+			data: { user: user },
 			message: "Profile fetched successfully.",
 		});
 	} catch (error) {

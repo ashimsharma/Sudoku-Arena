@@ -80,7 +80,7 @@ export default function Profile() {
 					</div>
 					<div className="group cursor-pointer">
 						<p className="text-sm text-gray-400 group-hover:underline">Friends</p>
-						<p className="text-xl font-bold">23</p>
+						<p className="text-xl font-bold">{profile.totalFriends}</p>
 					</div>
 				</div>
 

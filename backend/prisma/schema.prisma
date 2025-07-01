@@ -22,6 +22,9 @@ model User {
   games     GamePlayer[]
   wonGames  Game[]   @relation("UserWonGames")
 
+  requestedFriends     Friend[] @relation("RequestedFriends")
+  receivedFriends    Friend[] @relation("ReceivedFriends")
+
   noOfWins   Int  @default(0)
   noOfLosses   Int @default(0)
   noOfDraws   Int @default(0)
@@ -66,4 +69,23 @@ model GamePlayer {
 enum PlayerRoles {
   Player1
   Player2
+}
+
+model Friend {
+  id           String   @id @default(uuid())
+  requester    User     @relation("RequestedFriends", fields: [requesterId], references: [id])
+  requesterId  String
+  receiver     User     @relation("ReceivedFriends", fields: [receiverId], references: [id])
+  receiverId   String
+  status       String  
+  createdAt    DateTime @default(now())
+
+  @@unique([requesterId, receiverId])
+}
+
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
