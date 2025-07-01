@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { setUser } from "../redux/userSlice";
 import { HiArrowLeft } from "react-icons/hi";
 import axios from "axios";
 import checkAuth from "../utils/authentication";
 
-export default function Profile() {
+export default function UserProfile() {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
 	const [profile, setProfile] = useState<any>();
+    const [searchParams] = useSearchParams();
+    const userId = searchParams.get('userId');
 
 	useEffect(() => {
 		(async () => {
@@ -27,13 +29,16 @@ export default function Profile() {
 	useEffect(() => {
 		(async () => {
 			const response = await axios.get(
-				`${import.meta.env.VITE_API_URL}/auth/get-profile`,
+				`${import.meta.env.VITE_API_URL}/user/get-user?userId=${userId}`,
 				{
 					withCredentials: true
 				}
 			);
 
 			if (response) {
+                if(response.data.data.isSelf){
+                    navigate("/profile");
+                }
 				setProfile(response.data.data.user);
 				setLoading(false);
 			} else {
@@ -61,25 +66,24 @@ export default function Profile() {
 			</div>
 			<div className="max-w-sm mx-auto bg-gray-800 text-white rounded-2xl shadow-xl p-6 space-y-4">
 				<div className="flex justify-center h-44">
-					<img src={profile.avatarUrl} alt="Avatar URL" className="h-15 w-15 object-cover rounded-full" />
+					<img src={profile.avatarUrl} alt={profile.name} title={profile.name} className="h-15 w-15 object-cover rounded-full" />
 				</div>
 
 				<div className="text-center">
 					<h2 className="text-2xl font-semibold">{profile.name}</h2>
 					<p className="text-gray-400">
 						Rank:{" "}
-						<span className="text-yellow-400 font-medium">{(profile.noOfWins + profile.noOfDraws + profile.noOfLosses !== 0) && profile.rank}</span>
-						<span className="text-sm">{(profile.noOfWins + profile.noOfDraws + profile.noOfLosses == 0) && "No games played or completed."}</span>
+						<span className="text-yellow-400 font-medium">{profile.rank}</span>
 					</p>
 				</div>
 
 				<div className="grid grid-cols-2 gap-4 text-center">
-					<div className="group cursor-pointer" onClick={() => navigate("/profile/all-games")}>
-						<p className="text-sm text-gray-400 group-hover:underline">Total Games</p>
+					<div className="">
+						<p className="text-sm text-gray-400">Total Games</p>
 						<p className="text-xl font-bold">{profile.noOfWins + profile.noOfDraws + profile.noOfLosses}</p>
 					</div>
-					<div className="group cursor-pointer">
-						<p className="text-sm text-gray-400 group-hover:underline">Friends</p>
+					<div className="">
+						<p className="text-sm text-gray-400">Friends</p>
 						<p className="text-xl font-bold">23</p>
 					</div>
 				</div>

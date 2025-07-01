@@ -47,3 +47,4 @@ export const GAME_ALREADY_ENDED = "game_already_ended";
 // Extras 
 export const TIMER_COMPLETE = "timer_complete";
 export const BOARD_COMPELTE = "board_complete";
+export const MISTAKES_COMPLETE = "mistakes_complete";

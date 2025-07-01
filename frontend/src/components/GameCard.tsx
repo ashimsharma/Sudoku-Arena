@@ -22,6 +22,11 @@ export default function GameCard({
 
 	const navigate = useNavigate();
 
+	const navigateToUserProfile = (e: any, playerId: string) => {
+		e.stopPropagation();
+		navigate(`/user/profile?userId=${playerId}`)
+	}
+
 	return (
 		<div className="bg-gray-800 text-white rounded-xl shadow-md p-4 flex items-center space-x-6 max-w-4xl mx-auto m-4 hover:bg-gray-700 cursor-pointer" key={id} onClick={() => navigate(`/profile/all-games/game?gameId=${id}`)}>
 			<div className="p-2">
@@ -31,7 +36,8 @@ export default function GameCard({
 					<img
 						src={winner?.avatarUrl}
 						alt="Winner"
-						className="w-16 h-16 rounded-full border-4 border-green-500 object-cover"
+						className="w-16 h-16 rounded-full border-4 border-green-500 object-cover cursor-pointer"
+						onClick={(e) => navigateToUserProfile(e, winner.id)}
 					/>
 				) : (
 					<FaCircleUser className="w-16 h-16" />
@@ -46,13 +52,14 @@ export default function GameCard({
 					src={opponent.user.avatarUrl}
 					alt="Opponent"
 					className="w-16 h-16 rounded-full object-cover cursor-pointer"
+					onClick={(e) => navigateToUserProfile(e, opponent.user.id)}
 				/>
 			</div>
 
 			<div className="flex items-center space-x-4 flex-1">
 				<div className="flex items-center space-x-3">
 					<div>
-						<p className="text-lg font-semibold cursor-pointer hover:underline">
+						<p className="text-lg font-semibold cursor-pointer hover:underline" onClick={(e) => navigateToUserProfile(e, opponent.user.id)}>
 							{opponent.user.name}
 						</p>
 						<p className="text-sm text-gray-400">

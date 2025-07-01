@@ -98,6 +98,7 @@ const Leaderboard = () => {
 					<div
 						className={`grid grid-cols-12 bg-gray-600 bg-opacity-25 hover:bg-opacity-50 p-2 w-3/4 lg:w-full m-auto gap-4 group transition-all duration-300 cursor-pointer ${index === (leaderboard.length - 1) && 'rounded-b-lg'}`}
 						key={value.id}
+						onClick={() => navigate(`/user/profile?userId=${value.id}`)}
 					>
 						<div className="col-span-1 flex items-center">
 							<p className={`p-2 w-8 h-8 flex justify-center items-center rounded-full font-bold text-lg ${index === 0 && 'bg-[#FFD700]'} ${index === 1 && 'bg-[#C0C0C0]'} ${index === 2 && 'bg-[#CD7F32]'}`}>{index + 1}</p>
