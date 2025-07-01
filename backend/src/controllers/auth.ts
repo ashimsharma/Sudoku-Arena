@@ -82,42 +82,38 @@ function isAuthenticated(req: Request, res: Response) {
 }
 
 async function getProfile(req: Request, res: Response) {
-	if (!req.user) {
-		res.status(300).json({
-			status: 301,
-			success: false,
-			message: "Not Authenticated.",
+	try {
+		const result: any[] = await prisma.$queryRaw`
+	  SELECT rank FROM (
+	    SELECT id, RANK() OVER (
+	      ORDER BY "noOfWins"::float / NULLIF(("noOfWins" + "noOfLosses" + "noOfDraws")::float, 0) DESC
+	    ) AS rank
+	    FROM "User"
+	  ) AS ranked
+	  WHERE id = ${(req.user as any).id}
+	`;
+
+		if (!result) {
+			res.status(401).json({
+				statusCode: 401,
+				message: "Failed to fetch rank.",
+				success: false,
+			});
+
+			return;
+		}
+
+		(req.user as any).rank = Number(result[0].rank);
+
+		res.status(200).json({
+			statusCode: 200,
+			success: true,
+			data: { user: req.user },
+			message: "Profile fetched successfully.",
 		});
+	} catch (error) {
+		console.log(error);
 	}
-
-	const result: any[] = await prisma.$queryRaw`
-  SELECT rank FROM (
-    SELECT id, RANK() OVER (
-      ORDER BY "noOfWins"::float / NULLIF(("noOfWins" + "noOfLosses" + "noOfDraws")::float, 0) DESC
-    ) AS rank
-    FROM "User"
-  ) AS ranked
-  WHERE id = ${(req.user as any).id}
-`;
-
-	if (!result) {
-		res.status(401).json({
-			statusCode: 401,
-			message: "Failed to fetch rank.",
-			success: false,
-		});
-
-		return;
-	}
-
-	(req.user as any).rank = Number(result[0].rank);
-
-	res.status(200).json({
-		statusCode: 200,
-		success: true,
-		data: { user: req.user },
-		message: "Rank fetched successfully.",
-	});
 }
 
 export {

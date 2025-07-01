@@ -125,4 +125,76 @@ async function getGame(req: Request, res: Response) {
     }
 }
 
-export {getAllGames, getGame};
+async function getUser(req: Request, res: Response) {
+    try {
+        const user: any = req.user;
+    
+        const userId: string = (req.query?.userId as string);
+
+        if(user.id === userId){
+            res.status(200)
+            .json(
+                {
+                    statusCode: 200,
+                    success: true,
+                    message: "User Profile fetched successfully.",
+                    data: {isSelf: true}
+                }
+            )
+            return;
+        }
+
+        let rank: any[] = await prisma.$queryRaw`
+	  SELECT rank FROM (
+	    SELECT id, RANK() OVER (
+	      ORDER BY "noOfWins"::float / NULLIF(("noOfWins" + "noOfLosses" + "noOfDraws")::float, 0) DESC
+	    ) AS rank
+	    FROM "User"
+	  ) AS ranked
+	  WHERE id = ${userId}
+	    `;
+
+        const foundUser: any = await prisma.user.findFirst(
+            {
+                where: {
+                    id: userId
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    avatarUrl: true,
+                    noOfWins: true,
+                    noOfDraws: true,
+                    noOfLosses: true
+                }
+            }
+        );
+
+        if(!foundUser){
+            res.status(402)
+            .json(
+                {
+                    statusCode: 402,
+                    success: false,
+                    message: "Failed to fetch user."
+                }
+            )
+            return;
+        }
+
+        foundUser.rank = Number(rank[0].rank);
+
+        res.status(200)
+        .json(
+            {
+                statusCode: 200,
+                success: true,
+                message: "User Profile fetched successfully.",
+                data: {user: foundUser, isSelf: false}
+            }
+        )
+    } catch (error) {
+        console.log(error);
+    }
+}
+export {getAllGames, getGame, getUser};
