@@ -7,7 +7,7 @@ type TimeRangeTypes = "allTime" | "daily" | "weekly" | "monthly";
 async function getLeaderboard(req: Request, res: Response) {
 	try {
 		const type: TimeRangeTypes =
-			(req.params?.type as TimeRangeTypes) || "allTime";
+			(req.query?.type as TimeRangeTypes) || "allTime";
 
 		const timeRange = getTimeRange(type);
 

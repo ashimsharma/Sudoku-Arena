@@ -1,7 +1,9 @@
 import { FaCircleUser } from "react-icons/fa6";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 export default function GameCard({
+	id,
 	options,
 	opponent,
 	draw,
@@ -18,8 +20,10 @@ export default function GameCard({
 		});
 	};
 
+	const navigate = useNavigate();
+
 	return (
-		<div className="bg-gray-800 text-white rounded-xl shadow-md p-4 flex items-center space-x-6 max-w-4xl mx-auto m-4 hover:bg-gray-700 cursor-pointer">
+		<div className="bg-gray-800 text-white rounded-xl shadow-md p-4 flex items-center space-x-6 max-w-4xl mx-auto m-4 hover:bg-gray-700 cursor-pointer" key={id} onClick={() => navigate(`/profile/all-games/game?gameId=${id}`)}>
 			<div className="p-2">
 				<p className="text-gray-100 text-sm text-center mb-1">Winner</p>
 

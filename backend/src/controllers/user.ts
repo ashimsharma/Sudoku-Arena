@@ -70,4 +70,59 @@ async function getAllGames(req: Request, res: Response){
     }
 }
 
-export {getAllGames};
+async function getGame(req: Request, res: Response) {
+    try {
+        const gameId: string = (req.query?.gameId as string);
+
+        const game = await prisma.game.findFirst(
+            {
+                where: {
+                    id: gameId
+                },
+                select: {
+                    id: true,
+                    players: {
+                        where: {
+                            gameId: gameId
+                        },
+                        select: {
+                            id: true,
+                            gameData: true,
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    avatarUrl: true
+                                }
+                            }
+                        }
+                    },
+                    winner: {
+                        select: {
+                            id: true,
+                            name: true,
+                            avatarUrl: true
+                        }
+                    },
+                    draw: true
+                }
+            }
+        )
+
+        res.status(200)
+        .json(
+            {
+                statusCode: 200,
+                success: true,
+                message: "Game fetched Successfully",
+                data: {
+                    game
+                }
+            }
+        );
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export {getAllGames, getGame};

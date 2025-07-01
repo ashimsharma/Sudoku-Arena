@@ -36,7 +36,6 @@ export default function UserGames() {
 				}
 			);
 			if (response) {
-                console.log(response.data.data.games.games[0].game.createdAt);
 				setGames(response.data.data.games.games);
 				setLoading(false);
 			}
@@ -62,7 +61,7 @@ export default function UserGames() {
             <div className="mt-4">
                 {games.map((game: any) => {
                     return (
-                        <GameCard key={game.game.id} options={game.game.options} winner={game.game.winner} draw={game.game.draw} opponent={game.game.players.find((item: any) => item.user.id !== user.id)} createdAt={game.game.createdAt}/> 
+                        <GameCard key={game.game.id} id={game.game.id} options={game.game.options} winner={game.game.winner} draw={game.game.draw} opponent={game.game.players.find((item: any) => item.user.id !== user.id)} createdAt={game.game.createdAt} /> 
                     )
                 })}
             </div>

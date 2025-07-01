@@ -17,4 +17,6 @@ import ProgressBar from "./ProgressBar";
 import ResultModal from "./ResultModal";
 import Profile from "./Profile";
 import UserGames from "./UserGames";
-export {Login, Home, Navbar, Footer, Leaderboard, Game, CreateRoomModal, GameRoom, JoinRoomModal, GameBoardScreen, Keypad, Popup, GameBoard, ButtonPallet, TimerPallet, ProgressBar, ResultModal, Profile, UserGames};
+import GameInfo from "./GameInfo";
+import GameInfoBoard from "./GameInfoBoard";
+export {Login, Home, Navbar, Footer, Leaderboard, Game, CreateRoomModal, GameRoom, JoinRoomModal, GameBoardScreen, Keypad, Popup, GameBoard, ButtonPallet, TimerPallet, ProgressBar, ResultModal, Profile, UserGames, GameInfo, GameInfoBoard};
