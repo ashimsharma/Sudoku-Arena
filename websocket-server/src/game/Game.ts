@@ -155,6 +155,7 @@ export class Game {
 				JSON.stringify({
 					type: OPPONENT_JOINED,
 					data: {
+						joinerId: this.joiner?.id,
 						joinerName: this.joiner?.name,
 						avatarUrl: this.joiner?.avatarUrl,
 					},
@@ -166,6 +167,7 @@ export class Game {
 					type: ROOM_JOINED,
 					data: {
 						roomId: this.gameId,
+						creatorId: this.creator?.id,
 						creatorName: this.creator?.name,
 						avatarUrl: this.creator?.avatarUrl,
 					},

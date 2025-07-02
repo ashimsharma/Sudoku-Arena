@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import getTimeRange from "../utils/timeRanges";
 import prisma from "../db";
+import { GameStatus } from "@prisma/client";
 
 type TimeRangeTypes = "allTime" | "daily" | "weekly" | "monthly";
 
@@ -12,8 +13,8 @@ async function getLeaderboard(req: Request, res: Response) {
 		const timeRange = getTimeRange(type);
 
 		const whereClause = timeRange
-			? { createdAt: { gte: timeRange.start, lte: timeRange.end } }
-			: {};
+			? { createdAt: { gte: timeRange.start, lte: timeRange.end }, status: GameStatus.COMPLETED }
+			: {status: GameStatus.COMPLETED};
 
 		const games = await prisma.game.findMany({
 			where: whereClause,

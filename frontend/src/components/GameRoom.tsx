@@ -44,7 +44,9 @@ const GameRoom = () => {
 			case OPPONENT_JOINED:
 				const name = data.data.joinerName;
 				const avatarUrl = data.data.avatarUrl;
-				dispatch(setOpponent({ opponent: { name, avatarUrl } }));
+				const id = data.data.joinerId;
+				console.log(data.data);
+				dispatch(setOpponent({ opponent: { name, avatarUrl, id } }));
 				setOpponentJoined(true);
 				break;
 			case GAME_INITIATED:

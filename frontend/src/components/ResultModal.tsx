@@ -94,7 +94,9 @@ function ResultModal() {
 							<img
 								src={opponent.avatarUrl}
 								alt={opponent.name}
-								className="w-24 h-24 rounded-full"
+								className="w-24 h-24 rounded-full cursor-pointer"
+								onClick={() => navigate(`/user/profile?userId=${opponent.id}`)}
+								title={opponent.name}
 							/>
 						</div>
 						<div className="w-full bg-gray-800 p-4 rounded-lg">

@@ -50,7 +50,9 @@ const Game = () => {
 			case ROOM_JOINED:
 				const name = data.data.creatorName;
 				const avatarUrl = data.data.avatarUrl;
-				dispatch(setOpponent({ opponent: { name, avatarUrl } }));
+				const id = data.data.creatorId;
+
+				dispatch(setOpponent({ opponent: { name, avatarUrl, id } }));
 				const joinerRoomId = data.data.roomId;
 				dispatch(setGameId({ gameId: joinerRoomId }));
 				dispatch(setMeType({ meType: "joiner" }));
