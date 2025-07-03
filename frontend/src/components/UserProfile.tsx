@@ -13,10 +13,10 @@ export default function UserProfile() {
 	const [profile, setProfile] = useState<any>();
 	const [searchParams] = useSearchParams();
 	const userId = searchParams.get("userId");
-	const [addButton, setAddButton] = useState("Add Friend");
-	const [acceptButton, setAcceptButton] = useState("Accept Friend");
-	const [rejectButton, setRejectButton] = useState("Reject Friend");
-	const [removeButton, setRemoveButton] = useState("Remove Friend");
+	const [addButton, setAddButton] = useState("Add");
+	const [acceptButton, setAcceptButton] = useState("Accept");
+	const [rejectButton, setRejectButton] = useState("Reject");
+	const [removeButton, setRemoveButton] = useState("Remove");
 	const [friendRequest, setFriendRequest] = useState<any>();
 	const [hasRequested, setHasRequested] = useState();
 	const [isFriend, setIsFriend] = useState();

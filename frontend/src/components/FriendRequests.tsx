@@ -108,7 +108,7 @@ export default function FriendRequests() {
 				</button>
 			</div>
 			<div>
-                {friendRequests.length === 0 && <p className="text-sm text-gray-100 text-center">No new friend requests.</p>}
+                {friendRequests.length === 0 && <p className="text-sm text-gray-100 min-h-screen flex items-center justify-center">No new friend requests.</p>}
 				{friendRequests.length !== 0 && friendRequests.map((request: any) => (
 					<div
 						key={request.id}

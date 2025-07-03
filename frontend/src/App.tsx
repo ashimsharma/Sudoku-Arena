@@ -10,7 +10,8 @@ import {
 	UserGames,
 	GameInfo,
 	UserProfile,
-	FriendRequests
+	FriendRequests,
+	Friends
 } from "./components";
 import AuthComponent from "./components/AuthComponent";
 import { Provider } from "react-redux";
@@ -54,6 +55,7 @@ function App() {
 						<Route path="/game/game-room/game-board" element={<GameBoardScreen />} />
 						<Route path="/profile" element={<Profile />} />
 						<Route path="/profile/all-games" element={<UserGames />} />
+						<Route path="/profile/friends" element={<Friends />} />
 						<Route path="/profile/all-games/game" element={<GameInfo />} />
 						<Route path="/user/profile" element={<UserProfile />} />
 						<Route path="/friend-requests" element={<FriendRequests />} />

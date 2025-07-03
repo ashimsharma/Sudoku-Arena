@@ -438,6 +438,58 @@ async function removeFriend(req: Request, res: Response) {
 		console.log(error);
 	}
 }
+
+async function getFriends(req: Request, res: Response) {
+	try {
+		const user: any = req.user;
+
+		let friends = await prisma.friend.findMany({
+			where: {
+				OR: [
+					{receiverId: user?.id},
+					{requesterId: user?.id}
+				],
+				status: FriendRequestStatus.ACCEPTED,
+			},
+			select: {
+				id: true,
+				requester: {
+					select: {
+						id: true,
+						name: true,
+						avatarUrl: true
+					}
+				},
+				receiver: {
+					select: {
+						id: true,
+						name: true,
+						avatarUrl: true
+					}
+				},
+				createdAt: true,
+			},
+		});
+
+		if (!friends) {
+			res.status(402).json({
+				statusCode: 402,
+				succes: false,
+				message: "Failed to fetch friend list.",
+			});
+			return;
+		}	
+
+		res.status(200).json({
+			statusCode: 200,
+			success: true,
+			message: "Friend List fetched.",
+			data: { friends: friends },
+		});
+	} catch (error) {
+		console.log(error);
+	}
+}
 export {
 	getAllGames,
 	getGame,
@@ -446,5 +498,6 @@ export {
 	getFriendRequests,
 	acceptFriend,
 	rejectFriend,
-    removeFriend
+    removeFriend,
+	getFriends
 };
