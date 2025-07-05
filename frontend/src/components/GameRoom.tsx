@@ -17,6 +17,7 @@ import {
 	setCurrentGameState,
 	setStartTime,
 	setGameDuration,
+	setEmojiReactions,
 } from "../redux/gameSlice";
 import LoaderModal from "./LoaderModal";
 
@@ -75,12 +76,17 @@ const GameRoom = () => {
 					setStartTime({
 						startTime: data.data.startTime,
 					})
-				)
+				);
 				dispatch(
 					setGameDuration({
 						gameDuration: data.data.gameDuration,
 					})
-				)
+				);
+				dispatch(
+					setEmojiReactions({
+						emojiReactions: data.data.reactions
+					})
+				);
 				break;
 		}
 	};

@@ -5,6 +5,8 @@ export const INIT_GAME = "init_game";
 export const ADD_NUMBER = "add_number";
 export const CLEAR_CELL = "clear_cell";
 export const TIMER_ENDED = "timer_ended";
+export const SEND_REACTION = "send_reaction";
+export const OPPONENT_REACTION = "opponent_reaction";
 
 // Backend Messages
 export const ROOM_CREATED = "room_created";

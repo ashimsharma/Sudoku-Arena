@@ -1,5 +1,13 @@
 import { useDispatch, useSelector } from "react-redux";
-import { Keypad, GameBoard, ButtonPallet, TimerPallet, ProgressBar, ResultModal } from "./";
+import {
+	Keypad,
+	GameBoard,
+	ButtonPallet,
+	TimerPallet,
+	ProgressBar,
+	ResultModal,
+	ReactionBar,
+} from "./";
 import { useState, createContext, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getSocket } from "../config/socket.config";
@@ -13,6 +21,7 @@ import {
 	OPPONENT_CORRECT_CELL,
 	OPPONENT_MISTAKE,
 	OPPONENT_MISTAKES_COMPLETE,
+	OPPONENT_REACTION,
 	WRONG_CELL,
 	YOUR_MISTAKES_COMPLETE,
 } from "../messages/messages";
@@ -49,6 +58,8 @@ interface GameContextType {
 	popupProperties: PopupProperties;
 	setPopupProperties: any;
 	gameEnded: boolean;
+	showOpponentReaction: boolean;
+	opponentReaction: any;
 }
 
 interface PopupProperties {
@@ -76,6 +87,9 @@ export default function GameBoardScreen() {
 	const [score, setScore] = useState(0);
 	const [timerEnded, setTimerEnded] = useState(false);
 	const [gameEnded, setGameEnded] = useState(false);
+
+	const [opponentReaction, setOpponentReaction] = useState();
+	const [showOpponentReaction, setShowOpponentReaction] = useState(false);
 
 	const keyPressed = useRef(false);
 
@@ -191,64 +205,73 @@ export default function GameBoardScreen() {
 			case YOUR_MISTAKES_COMPLETE:
 				dispatch(
 					setCurrentGameState({
-						currentGameState: data.currentGameState
+						currentGameState: data.currentGameState,
 					})
 				);
 				dispatch(
 					setTotalMistakes({
-						totalMistakes: data.mistakes
+						totalMistakes: data.mistakes,
 					})
 				);
 				break;
 			case OPPONENT_MISTAKES_COMPLETE:
 				dispatch(
 					setOpponentMistakes({
-						opponentMistakes: data.opponentMistakes
+						opponentMistakes: data.opponentMistakes,
 					})
-				)
+				);
 				break;
 			case GAME_ENDED:
 				dispatch(
 					setWinner({
-						winner: data.result.winner
+						winner: data.result.winner,
 					})
-				)
+				);
 				dispatch(
 					setMeProgress({
 						meProgress: data.result.yourPercentageComplete,
 					})
-				)
+				);
 				dispatch(
 					setOpponentProgress({
-						opponentProgress: data.result.opponentPercentageComplete
+						opponentProgress:
+							data.result.opponentPercentageComplete,
 					})
-				)
+				);
 				dispatch(
 					setTotalMistakes({
-						totalMistakes: data.result.yourMistakes
+						totalMistakes: data.result.yourMistakes,
 					})
-				)
+				);
 				dispatch(
 					setOpponentMistakes({
-						opponentMistakes: data.result.opponentMistakes
+						opponentMistakes: data.result.opponentMistakes,
 					})
-				)
+				);
 				dispatch(
 					setYourTimeTaken({
-						yourTimeTaken: data.result.yourTimeTaken
+						yourTimeTaken: data.result.yourTimeTaken,
 					})
-				)
+				);
 				dispatch(
 					setOpponentTimeTaken({
-						opponentTimeTaken: data.result.opponentTimeTaken
+						opponentTimeTaken: data.result.opponentTimeTaken,
 					})
-				)
+				);
 				dispatch(
 					setGameEndReason({
-						gameEndReason: data.result.gameEndReason
+						gameEndReason: data.result.gameEndReason,
 					})
-				)
+				);
 				setGameEnded(true);
+				break;
+			case OPPONENT_REACTION:
+				setShowOpponentReaction(true);
+				console.log(data.reaction);
+				setOpponentReaction(data.reaction);
+				setTimeout(() => {
+					setShowOpponentReaction(false);
+				}, 2000)
 				break;
 		}
 	};
@@ -388,7 +411,9 @@ export default function GameBoardScreen() {
 				forceReRender,
 				popupProperties,
 				setPopupProperties,
-				gameEnded
+				gameEnded,
+				showOpponentReaction,
+				opponentReaction
 			}}
 		>
 			<div className="min-h-screen bg-gray-800 text-white">
@@ -409,7 +434,8 @@ export default function GameBoardScreen() {
 					<div className="row-start-11 row-span-2">
 						<ButtonPallet />
 					</div>
-					<div className="row-span-6 flex items-center">
+					<div className="row-span-6 flex justify-center items-center flex-col gap-4">
+						<ReactionBar />
 						<ProgressBar />
 					</div>
 					<div className="col-start-2 row-start-7 row-span-6">

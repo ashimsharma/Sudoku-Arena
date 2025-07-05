@@ -25,11 +25,18 @@ import {
 	GAME_ALREADY_ENDED,
 	TIMER_COMPLETE,
 	MISTAKES_COMPLETE,
+	OPPONENT_REACTION,
 } from "../messages/messages";
 
 type Options = {
 	difficulty: Difficulty;
 	gameTime: number;
+};
+
+type EmojiReactions = {
+	id: number;
+	label: string;
+	emoji: string;
 };
 
 type Difficulty = "easy" | "medium" | "hard" | "expert";
@@ -78,6 +85,17 @@ export class Game {
 	private timerEnded: boolean = false;
 	private gameEnded: boolean = false;
 	private readonly gameDuration: number = 0; // 600000 ms -> 10 minutes
+	private readonly emojiReactions: EmojiReactions[] = [
+		{ id: 1, label: "Big Brain", emoji: "🧠" },
+		{ id: 2, label: "Close Call", emoji: "😅" },
+		{ id: 3, label: "On Fire", emoji: "🔥" },
+		{ id: 4, label: "Mind Blown", emoji: "🤯" },
+		{ id: 5, label: "Well Played", emoji: "👏" },
+		{ id: 6, label: "Too Slow", emoji: "🐢" },
+		{ id: 7, label: "Victory!", emoji: "🥳" },
+		{ id: 8, label: "Good Game", emoji: "🤝" },
+		{ id: 9, label: "Oops!", emoji: "❌" },
+	];
 
 	constructor(creatingPlayer: WebSocket, params: any) {
 		this.creator = {
@@ -314,6 +332,7 @@ export class Game {
 						currentGameState: this.creator.currentGameState,
 						startTime: this.startTime,
 						gameDuration: this.gameDuration,
+						reactions: this.emojiReactions
 					},
 				})
 			);
@@ -325,6 +344,7 @@ export class Game {
 						currentGameState: this.joiner?.currentGameState,
 						startTime: this.startTime,
 						gameDuration: this.gameDuration,
+						reactions: this.emojiReactions
 					},
 				})
 			);
@@ -954,5 +974,21 @@ export class Game {
 		}
 
 		return false;
+	}
+
+	sendReaction(userId: string, reactionId: number){
+		try {
+			const opponent = (userId === this.creator.id) ? this.joiner : this.creator;
+			opponent?.socket.send(
+				JSON.stringify(
+					{
+						type: OPPONENT_REACTION,
+						reaction: this.emojiReactions.filter((reaction: EmojiReactions) => reaction.id === reactionId)[0]
+					}
+				)
+			)
+		} catch (error) {
+			console.log(error);
+		}
 	}
 }

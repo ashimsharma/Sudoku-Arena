@@ -6,6 +6,7 @@ import {
 	INIT_GAME,
 	JOIN_ROOM,
 	NUMBER_ADDED,
+	SEND_REACTION,
 	TIMER_ENDED,
 } from "./messages/messages";
 import { Game } from "./game/Game";
@@ -88,6 +89,10 @@ wss.on("connection", function connection(ws, req) {
 				case TIMER_ENDED:
 					const timerEndedGame = gameManager.findGame(params.roomId);
 					timerEndedGame.endTimer(params.userId);
+					break;
+				case SEND_REACTION:
+					const reactedGame = gameManager.findGame(params.roomId);
+					reactedGame.sendReaction(params.userId, params.reactionId);
 					break;
 				default:
 					break;

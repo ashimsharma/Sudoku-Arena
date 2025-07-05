@@ -6,6 +6,12 @@ type CurrentGameStateData = {
 	canBeTyped: boolean;
 }
 
+type EmojiReactions = {
+	id: number;
+	label: string;
+	emoji: string;
+};
+
 interface InitialState {
     gameId: null | string
     me: null | Object
@@ -23,6 +29,7 @@ interface InitialState {
     opponentTimeTaken: number
     winner: string
     gameEndReason: string
+    emojiReactions: EmojiReactions[]
 }
 
 const initialState: InitialState = {
@@ -41,7 +48,8 @@ const initialState: InitialState = {
     yourTimeTaken: 0,
     opponentTimeTaken: 0,
     winner: "",
-    gameEndReason: ""
+    gameEndReason: "",
+    emojiReactions: []
 }
 
 const gameSlice = createSlice({
@@ -95,9 +103,12 @@ const gameSlice = createSlice({
         },
         setGameEndReason: (state, action) => {
             state.gameEndReason = action.payload.gameEndReason;
+        },
+        setEmojiReactions: (state, action) => {
+            state.emojiReactions = action.payload.emojiReactions;
         }
     },
 });
 
-export const { setGameId, setMe, setOpponent, setMeType, setInitialGameState, setCurrentGameState, setMeProgress, setOpponentProgress, setTotalMistakes, setOpponentMistakes, setStartTime, setYourTimeTaken, setOpponentTimeTaken, setWinner, setGameEndReason, setGameDuration } = gameSlice.actions;
+export const { setGameId, setMe, setOpponent, setMeType, setInitialGameState, setCurrentGameState, setMeProgress, setOpponentProgress, setTotalMistakes, setOpponentMistakes, setStartTime, setYourTimeTaken, setOpponentTimeTaken, setWinner, setGameEndReason, setGameDuration, setEmojiReactions } = gameSlice.actions;
 export default gameSlice.reducer;
