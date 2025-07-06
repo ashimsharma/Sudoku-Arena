@@ -9,7 +9,6 @@ export default function ProgressBar(){
 	const opponentProgress = useSelector((state: any) => state.game).opponentProgress;
 	const opponentMistakes = useSelector((state: any) => state.game).opponentMistakes;
     const {opponentReaction, showOpponentReaction} = useContext(GameContext)!;
-    console.log(opponentReaction);
 
     return (
         <div className="p-6 bg-gray-900 flex flex-col items-center justify-center space-y-4 w-full rounded-xl">
@@ -30,7 +29,7 @@ export default function ProgressBar(){
                         style={{ width: `${opponentProgress}%` }}
                     ></div>
                 </div>
-                {showOpponentReaction && <div className="text-2xl left-3/4 absolute">{opponentReaction.emoji}</div>}
+                {showOpponentReaction && <div className="text-3xl left-3/4 absolute animate-drop-reverse">{opponentReaction.emoji}</div>}
                 <p className="text-yellow-400">{(opponent.name.length < 5) ? opponent.name : `${opponent.name.split(' ')[0]}`}'s Progress: {`${opponentProgress}%`}</p>
                 <p className="text-gray-300 text-sm">Mistakes: {opponentMistakes} / 5</p>
             </div>

@@ -7,13 +7,18 @@ export default {
   theme: {
     extend: {
       keyframes: {
-        'crown-drop': {
+        'drop': {
           '0%': { transform: 'translateY(-100px) scale(1.3)', opacity: '0' },
           '100%': { transform: 'translateY(0) scale(1)', opacity: '1' },
         },
+        'drop-reverse': {
+          '0%': { transform: 'translateY(0) scale(1)', opacity: '0' },
+          '100%': { transform: 'translateY(-100px) scale(1.3)', opacity: '1' },
+        }
       },
       animation: {
-        'crown-drop': 'crown-drop 0.6s ease-out forwards',
+        'drop': 'drop 0.6s ease-out forwards',
+        'drop-reverse': 'drop-reverse 0.6s ease-out forwards'
       },
     },
     screens: {

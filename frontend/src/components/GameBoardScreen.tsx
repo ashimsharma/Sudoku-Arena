@@ -267,7 +267,6 @@ export default function GameBoardScreen() {
 				break;
 			case OPPONENT_REACTION:
 				setShowOpponentReaction(true);
-				console.log(data.reaction);
 				setOpponentReaction(data.reaction);
 				setTimeout(() => {
 					setShowOpponentReaction(false);
