@@ -2,6 +2,7 @@ import { FaCrown } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { BOARD_COMPELTE, MISTAKES_COMPLETE, TIMER_COMPLETE } from "../messages/messages";
+import { closeSocket, getSocket } from "../config/socket.config";
 
 function ResultModal() {
 	const me = useSelector((state: any) => state.game).me;
@@ -124,14 +125,18 @@ function ResultModal() {
 					</div>
 				</div>
 				<h1 className="text-3xl font-bold text-white mb-6 animate-pulse">
-					{(winner === meType && winner !== "draw") ? "You Win!" : "You Lose!"}
+					{winner !== "draw" && ((winner === meType) ? "You Win!" : "You Lose!")}
 				</h1>
 				<h1 className="text-3xl font-bold text-white mb-6 animate-pulse">
 					{winner === "draw" && "Its a Draw!"}
 				</h1>
 				<button
 					className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-2xl shadow-lg transition duration-200"
-					onClick={() => navigate("/")}
+					onClick={() => {
+						localStorage.clear();
+						closeSocket();
+						navigate("/");
+					}}
 				>
 					Continue
 				</button>

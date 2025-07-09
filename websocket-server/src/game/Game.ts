@@ -26,6 +26,9 @@ import {
 	TIMER_COMPLETE,
 	MISTAKES_COMPLETE,
 	OPPONENT_REACTION,
+	DATA_FETCHED,
+	GAME_ALREADY_STARTED,
+	GAME_NOT_STARTED,
 } from "../messages/messages";
 
 type Options = {
@@ -332,7 +335,7 @@ export class Game {
 						currentGameState: this.creator.currentGameState,
 						startTime: this.startTime,
 						gameDuration: this.gameDuration,
-						reactions: this.emojiReactions
+						reactions: this.emojiReactions,
 					},
 				})
 			);
@@ -344,7 +347,7 @@ export class Game {
 						currentGameState: this.joiner?.currentGameState,
 						startTime: this.startTime,
 						gameDuration: this.gameDuration,
-						reactions: this.emojiReactions
+						reactions: this.emojiReactions,
 					},
 				})
 			);
@@ -976,17 +979,161 @@ export class Game {
 		return false;
 	}
 
-	sendReaction(userId: string, reactionId: number){
+	sendReaction(userId: string, reactionId: number) {
 		try {
-			const opponent = (userId === this.creator.id) ? this.joiner : this.creator;
+			const opponent =
+				userId === this.creator.id ? this.joiner : this.creator;
 			opponent?.socket.send(
+				JSON.stringify({
+					type: OPPONENT_REACTION,
+					reaction: this.emojiReactions.filter(
+						(reaction: EmojiReactions) => reaction.id === reactionId
+					)[0],
+				})
+			);
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
+	fetchGameRoomData(socket: WebSocket) {
+		if(this.gameEnded){
+			socket.send(
 				JSON.stringify(
 					{
-						type: OPPONENT_REACTION,
-						reaction: this.emojiReactions.filter((reaction: EmojiReactions) => reaction.id === reactionId)[0]
+						type: GAME_ALREADY_ENDED
 					}
 				)
 			)
+			return;
+		}
+
+		if(this.gameStarted){
+			socket.send(
+				JSON.stringify(
+					{
+						type: GAME_ALREADY_STARTED
+					}
+				)
+			)
+			return;
+		}
+
+		try {
+			if (connectionUserIds.get(socket) === this.creator.id) {
+				this.creator.socket = socket;
+				socket.send(JSON.stringify({ type: DATA_FETCHED, data: {
+					roomId: this.gameId,
+					type: "creator",
+					opponent: {
+						id: this.joiner?.id,
+						name: this.joiner?.name,
+						avatarUrl: this.joiner?.avatarUrl,
+						gameInitiated: this.joiner?.gameStarted
+					},
+					gameInitiated: this.creator.gameStarted
+				}}));
+				connectionUserIds.delete(socket);
+			}
+			else if (this.joiner && connectionUserIds.get(socket) === this.joiner?.id){
+				this.joiner.socket = socket;
+				socket.send(JSON.stringify(
+					{
+						type: DATA_FETCHED,
+						data: {
+							roomId: this.gameId,
+							type: "joiner",
+							opponent: {
+								id: this.creator.id,
+								name: this.creator.name,
+								avatarUrl: this.creator.avatarUrl,
+								gameInitiated: this.creator.gameStarted
+							},
+							gameInitiated: this.joiner?.gameStarted
+						}
+					}
+				))
+				connectionUserIds.delete(socket);
+			}
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
+	fetchGameBoardScreenData(socket: WebSocket) {
+		if(this.gameEnded){
+			socket.send(
+				JSON.stringify(
+					{
+						type: GAME_ALREADY_ENDED
+					}
+				)
+			)
+			return;
+		}
+
+		if(!this.gameStarted){
+			socket.send(
+				JSON.stringify(
+					{
+						type: GAME_NOT_STARTED
+					}
+				)
+			)
+			return;
+		}
+
+		try {
+			if (connectionUserIds.get(socket) === this.creator.id) {
+				this.creator.socket = socket;
+				socket.send(JSON.stringify({ type: DATA_FETCHED, data: {
+					roomId: this.gameId,
+					type: "creator",
+					opponent: {
+						id: this.joiner?.id,
+						name: this.joiner?.name,
+						avatarUrl: this.joiner?.avatarUrl,
+						mistakes: this.joiner?.mistakes,
+						percentageComplete: this.joiner?.percentageComplete,
+
+					},
+					initialGameState: this.initialGameState,
+					currentGameState: this.creator.currentGameState,
+					emojiReactions: this.emojiReactions,
+					startTime: this.startTime,
+					gameDuration: this.gameDuration,
+					mistakes: this.creator.mistakes,
+					percentageComplete: this.creator.percentageComplete
+				}}));
+				connectionUserIds.delete(socket);
+			}
+			else if (this.joiner && connectionUserIds.get(socket) === this.joiner?.id){
+				this.joiner.socket = socket;
+				socket.send(JSON.stringify(
+					{
+						type: DATA_FETCHED,
+						data: {
+							roomId: this.gameId,
+							type: "joiner",
+							opponent: {
+								id: this.creator.id,
+								name: this.creator.name,
+								avatarUrl: this.creator.avatarUrl,
+								mistakes: this.creator.mistakes,
+								percentageComplete: this.creator.percentageComplete
+							},
+							initialGameState: this.initialGameState,
+							currentGameState: this.joiner?.currentGameState,
+							emojiReactions: this.emojiReactions,
+							startTime: this.startTime,
+							gameDuration: this.gameDuration,
+							mistakes: this.joiner?.mistakes,
+							percentageComplete: this.joiner?.percentageComplete
+						}
+					}
+				))
+				connectionUserIds.delete(socket);
+			}
 		} catch (error) {
 			console.log(error);
 		}

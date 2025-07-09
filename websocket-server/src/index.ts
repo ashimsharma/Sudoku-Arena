@@ -1,8 +1,9 @@
 import { WebSocketServer } from "ws";
 import {
-  ADD_NUMBER,
+	ADD_NUMBER,
 	CLEAR_CELL,
 	CREATE_ROOM,
+	FETCH_DATA,
 	INIT_GAME,
 	JOIN_ROOM,
 	NUMBER_ADDED,
@@ -61,7 +62,7 @@ wss.on("connection", function connection(ws, req) {
 					gameManager.add(createdGame);
 					break;
 				case JOIN_ROOM:
-					const foundGame = gameManager.findGame(params.roomId); 
+					const foundGame = gameManager.findGame(params.roomId);
 					if (foundGame) {
 						foundGame.joinGame(ws); // Add the player to the game
 					} else {
@@ -94,6 +95,15 @@ wss.on("connection", function connection(ws, req) {
 					const reactedGame = gameManager.findGame(params.roomId);
 					reactedGame.sendReaction(params.userId, params.reactionId);
 					break;
+				case FETCH_DATA:
+					if (params.page === "game_room") {
+						const foundGame = gameManager.findGame(params.roomId);
+						foundGame.fetchGameRoomData(ws);
+					} else if (params.page === "game_board_screen") {
+						const foundGame = gameManager.findGame(params.roomId);
+						foundGame.fetchGameBoardScreenData(ws);
+					}
+					break;
 				default:
 					break;
 			}
@@ -102,19 +112,11 @@ wss.on("connection", function connection(ws, req) {
 			ws.send(JSON.stringify({ message: "Error processing message" }));
 		}
 	});
+	ws.on("close", (ws: WebSocket) => {
+		connectionUserIds.delete(ws);
+	});
 });
 
-wss.on("close", (ws: WebSocket) => {
-  connectionUserIds.delete(ws);
-  console.log(connectionUserIds);
-})
-
-// Log when WebSocket server is listening
-wss.on("listening", () => {
-	console.log("WebSocket server listening");
-});
-
-// Start the HTTP server on the configured port
 server.listen(process.env.PORT, () => {
 	console.log("Server started on port", process.env.PORT);
 });

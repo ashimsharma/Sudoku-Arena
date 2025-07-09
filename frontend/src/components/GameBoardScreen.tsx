@@ -10,14 +10,19 @@ import {
 } from "./";
 import { useState, createContext, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getSocket } from "../config/socket.config";
+import { closeSocket, connectSocket, getSocket } from "../config/socket.config";
 import {
 	ADD_NUMBER,
 	ALREADY_ON_CORRECT_POSITION,
 	CELL_CLEARED,
 	CLEAR_CELL,
 	CORRECT_CELL,
+	DATA_FETCHED,
+	FETCH_DATA,
+	GAME_ALREADY_ENDED,
+	GAME_ALREADY_STARTED,
 	GAME_ENDED,
+	GAME_NOT_STARTED,
 	OPPONENT_CORRECT_CELL,
 	OPPONENT_MISTAKE,
 	OPPONENT_MISTAKES_COMPLETE,
@@ -27,15 +32,25 @@ import {
 } from "../messages/messages";
 import {
 	setCurrentGameState,
+	setEmojiReactions,
+	setGameDuration,
 	setGameEndReason,
+	setGameId,
+	setInitialGameState,
+	setMe,
 	setMeProgress,
+	setMeType,
+	setOpponent,
 	setOpponentMistakes,
 	setOpponentProgress,
 	setOpponentTimeTaken,
+	setStartTime,
 	setTotalMistakes,
 	setWinner,
 	setYourTimeTaken,
 } from "../redux/gameSlice";
+import { setUser } from "../redux/userSlice";
+import checkAuth from "../utils/authentication";
 
 type CurrentGameStateData = {
 	digit: number | null;
@@ -90,6 +105,8 @@ export default function GameBoardScreen() {
 
 	const [opponentReaction, setOpponentReaction] = useState();
 	const [showOpponentReaction, setShowOpponentReaction] = useState(false);
+
+	const [loading, setLoading] = useState(true);
 
 	const keyPressed = useRef(false);
 
@@ -270,8 +287,78 @@ export default function GameBoardScreen() {
 				setOpponentReaction(data.reaction);
 				setTimeout(() => {
 					setShowOpponentReaction(false);
-				}, 2000)
+				}, 2000);
 				break;
+			case DATA_FETCHED:
+				dispatch(setGameId({ gameId: data.data.roomId }));
+				dispatch(setMeType({ meType: data.data.type }));
+				if (data.data.opponent.id) {
+					const opponent = {
+						id: data.data.opponent.id,
+						name: data.data.opponent.name,
+						avatarUrl: data.data.opponent.avatarUrl,
+					};
+					dispatch(setOpponent({ opponent: opponent }));
+				}
+				dispatch(
+					setInitialGameState({
+						initialGameState: data.data.initialGameState,
+					})
+				);
+				dispatch(
+					setCurrentGameState({
+						currentGameState: data.data.currentGameState,
+					})
+				);
+				dispatch(
+					setEmojiReactions({
+						emojiReactions: data.data.emojiReactions,
+					})
+				);
+				dispatch(setStartTime({ startTime: data.data.startTime }));
+				dispatch(
+					setGameDuration({ gameDuration: data.data.gameDuration })
+				);
+				dispatch(setMeProgress({meProgress: data.data.percentageComplete}));
+				dispatch(setTotalMistakes({totalMistakes: data.data.mistakes}));
+				dispatch(
+					setOpponentProgress({
+						opponentProgress: data.data.opponent.percentageComplete,
+					})
+				);
+				dispatch(
+					setOpponentMistakes({
+						opponentMistakes: data.data.opponent.mistakes,
+					})
+				);
+				setLoading(false);
+				break;
+			case GAME_NOT_STARTED:
+				navigate("/game/game-room");
+				break;
+			case GAME_ALREADY_ENDED:
+				navigate("/game");
+				break;
+		}
+	};
+
+	const shiftCell = (e: KeyboardEvent) => {
+		if (e.key === "ArrowLeft") {
+			if (selectedCellIndex.current === 0) return;
+			selectedCellIndex.current = selectedCellIndex.current - 1;
+			setForceReRender((prev) => !prev);
+		} else if (e.key === "ArrowRight") {
+			if (selectedCellIndex.current === 80) return;
+			selectedCellIndex.current = selectedCellIndex.current + 1;
+			setForceReRender((prev) => !prev);
+		} else if (e.key === "ArrowUp") {
+			if (selectedCellIndex.current <= 8) return;
+			selectedCellIndex.current = selectedCellIndex.current - 9;
+			setForceReRender((prev) => !prev);
+		} else {
+			if (selectedCellIndex.current >= 71) return;
+			selectedCellIndex.current = selectedCellIndex.current + 9;
+			setForceReRender((prev) => !prev);
 		}
 	};
 
@@ -280,6 +367,20 @@ export default function GameBoardScreen() {
 			e.preventDefault();
 
 			if (!keyPressed.current) {
+				return;
+			}
+
+			if (selectedCellIndex.current === -1) {
+				return;
+			}
+
+			if (
+				["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(
+					e.key
+				)
+			) {
+				console.log(selectedCellIndex.current);
+				shiftCell(e);
 				return;
 			}
 
@@ -326,7 +427,7 @@ export default function GameBoardScreen() {
 						type: CLEAR_CELL,
 						params: {
 							roomId: gameId,
-							userId: me.id,
+							userId: me?.id,
 							index: selectedCellIndex.current,
 						},
 					})
@@ -346,7 +447,7 @@ export default function GameBoardScreen() {
 					type: ADD_NUMBER,
 					params: {
 						roomId: gameId,
-						userId: me.id,
+						userId: me?.id,
 						value: clickedKey,
 						index: selectedCellIndex.current,
 					},
@@ -358,30 +459,57 @@ export default function GameBoardScreen() {
 	);
 
 	useEffect(() => {
-		if (
-			location.state === null ||
-			location.state?.from !== "/game/game-room"
-		) {
+		if(!localStorage.getItem("activeGameId")){
+			closeSocket();
 			navigate("/");
 			return;
 		}
+		(async () => {
+			const response = await checkAuth();
 
-		let socket: WebSocket | null;
-
-		try {
-			socket = getSocket();
-
-			socket.addEventListener("message", handleMessages);
-		} catch (error) {
-			console.log(error);
-		}
-
-		return () => {
-			socket?.removeEventListener("message", handleMessages);
-		};
+			if (response) {
+				dispatch(setUser({ user: response.data.data.user }));
+				dispatch(setMe({ me: response.data.data.user }));
+			} else {
+				closeSocket();
+				navigate("/login");
+			}
+		})();
 	}, []);
 
 	useEffect(() => {
+		if(!localStorage.getItem("activeGameId")){
+			closeSocket();
+			navigate("/");
+			return;
+		}
+		(async () => {
+			let socket: WebSocket | null;
+
+			try {
+				socket = getSocket();
+
+				if (!socket || socket.readyState !== WebSocket.OPEN) {
+					socket = await connectSocket();
+				}
+
+				socket?.addEventListener("message", handleMessages);
+			} catch (error) {
+				console.log(error);
+			}
+
+			return () => {
+				socket?.removeEventListener("message", handleMessages);
+			};
+		})();
+	}, []);
+
+	useEffect(() => {
+		if(!localStorage.getItem("activeGameId")){
+			closeSocket();
+			navigate("/");
+			return;
+		}
 		const keydownHandler = () => {
 			keyPressed.current = true;
 		};
@@ -394,7 +522,37 @@ export default function GameBoardScreen() {
 		};
 	}, [currentGameState]);
 
-	return (
+	useEffect(() => {
+		if(!localStorage.getItem("activeGameId")){
+			closeSocket();
+			navigate("/");
+			return;
+		}
+		(async () => {
+			if (gameId && type) {
+				setLoading(false);
+				return;
+			}
+
+			let socket = getSocket();
+
+			if (!socket || socket.readyState !== WebSocket.OPEN) {
+				socket = await connectSocket();
+			}
+
+			socket?.send(
+				JSON.stringify({
+					type: FETCH_DATA,
+					params: {
+						page: "game_board_screen",
+						roomId: localStorage.getItem("activeGameId"),
+					},
+				})
+			);
+		})();
+	}, []);
+
+	return loading ? (<div className="text-white">Loading...</div>) : (
 		<GameContext.Provider
 			value={{
 				game,
@@ -412,14 +570,14 @@ export default function GameBoardScreen() {
 				setPopupProperties,
 				gameEnded,
 				showOpponentReaction,
-				opponentReaction
+				opponentReaction,
 			}}
 		>
 			<div className="min-h-screen bg-gray-800 text-white">
 				{gameEnded && <ResultModal />}
 				<div className="py-6 bg-gray-900 shadow-lg">
 					<h1 className="p-4 text-center text-3xl font-bold text-red-500">
-						{type === "creator" ? me.name : opponent.name}'s GAME
+						{type === "creator" ? me?.name : opponent?.name}'s GAME
 						ROOM
 					</h1>
 				</div>

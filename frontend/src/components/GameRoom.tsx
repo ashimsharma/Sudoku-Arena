@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
-import { getSocket } from "../config/socket.config";
+import { closeSocket, connectSocket, getSocket } from "../config/socket.config";
 import { FiCopy } from "react-icons/fi";
 import { MdCheckCircle } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
 	BOTH_USERS_GAME_INITIATED,
+	DATA_FETCHED,
+	FETCH_DATA,
+	GAME_ALREADY_ENDED,
+	GAME_ALREADY_STARTED,
 	GAME_INITIATED,
 	INIT_GAME,
 	OPPONENT_GAME_INITIATED,
@@ -18,24 +22,105 @@ import {
 	setStartTime,
 	setGameDuration,
 	setEmojiReactions,
+	setMe,
+	setGameId,
+	setMeType,
 } from "../redux/gameSlice";
 import LoaderModal from "./LoaderModal";
+import { setUser } from "../redux/userSlice";
+import checkAuth from "../utils/authentication";
 
 const GameRoom = () => {
-	const [socket, setSocket] = useState<WebSocket | null>(null);
-	const [opponentJoined, setOpponentJoined] = useState(false);
-	const [gameInitiated, setGameInitiated] = useState(false);
-	const [opponentGameInitiated, setOpponentGameInitiated] = useState(false);
+	const [loading, setLoading] = useState(true);
+
+	const dispatch = useDispatch();
+
+	useEffect(() => {
+		if (!localStorage.getItem("activeGameId")) {
+			closeSocket();
+			navigate("/");
+			return;
+		}
+		(async () => {
+			const response = await checkAuth();
+
+			if (response) {
+				dispatch(setUser({ user: response.data.data.user }));
+				dispatch(setMe({ me: response.data.data.user }));
+			} else {
+				navigate("/login");
+			}
+		})();
+	}, []);
+
+	useEffect(() => {
+		if (!localStorage.getItem("activeGameId")) {
+			closeSocket();
+			navigate("/");
+			return;
+		}
+		(async () => {
+			let socket: WebSocket | null;
+
+			try {
+				socket = getSocket();
+
+				if (!socket || socket.readyState !== WebSocket.OPEN) {
+					socket = await connectSocket();
+				}
+
+				socket?.addEventListener("message", handleMessages);
+			} catch (error) {
+				console.log(error);
+			}
+
+			return () => {
+				socket?.removeEventListener("message", handleMessages);
+			};
+		})();
+	}, []);
 
 	const gameId = useSelector((state: any) => state.game).gameId;
 	const me = useSelector((state: any) => state.game).me;
 	const opponent = useSelector((state: any) => state.game).opponent;
 	const type = useSelector((state: any) => state.game).meType;
 
-	const location = useLocation();
-	const navigate = useNavigate();
+	useEffect(() => {
+		if (!localStorage.getItem("activeGameId")) {
+			closeSocket();
+			navigate("/");
+			return;
+		}
 
-	const dispatch = useDispatch();
+		(async () => {
+			if (gameId && type) {
+				setLoading(false);
+				return;
+			}
+
+			let socket = getSocket();
+
+			if (!socket || socket.readyState !== WebSocket.OPEN) {
+				socket = await connectSocket();
+			}
+
+			socket?.send(
+				JSON.stringify({
+					type: FETCH_DATA,
+					params: {
+						page: "game_room",
+						roomId: localStorage.getItem("activeGameId"),
+					},
+				})
+			);
+		})();
+	}, []);
+
+	const [opponentJoined, setOpponentJoined] = useState(false);
+	const [gameInitiated, setGameInitiated] = useState(false);
+	const [opponentGameInitiated, setOpponentGameInitiated] = useState(false);
+
+	const navigate = useNavigate();
 
 	const handleMessages = (event: MessageEvent) => {
 		const data = JSON.parse(event.data);
@@ -46,7 +131,6 @@ const GameRoom = () => {
 				const name = data.data.joinerName;
 				const avatarUrl = data.data.avatarUrl;
 				const id = data.data.joinerId;
-				console.log(data.data);
 				dispatch(setOpponent({ opponent: { name, avatarUrl, id } }));
 				setOpponentJoined(true);
 				break;
@@ -84,34 +168,29 @@ const GameRoom = () => {
 				);
 				dispatch(
 					setEmojiReactions({
-						emojiReactions: data.data.reactions
+						emojiReactions: data.data.reactions,
 					})
 				);
 				break;
+			case DATA_FETCHED:
+				dispatch(setGameId({ gameId: data.data.roomId }));
+				dispatch(setMeType({ meType: data.data.type }));
+				if (data.data.opponent.id) {
+					dispatch(setOpponent({ opponent: data.data.opponent }));
+				}
+				setGameInitiated(data.data.gameInitiated);
+				setOpponentGameInitiated(data.data.opponent.gameInitiated);
+				setLoading(false);
+				break;
+			case GAME_ALREADY_STARTED:
+				navigate("/game/game-room/game-board");
+				break;
+			case GAME_ALREADY_ENDED:
+				localStorage.clear();
+				navigate("/game");
+				break;
 		}
 	};
-
-	useEffect(() => {
-		if (location.state === null || location.state?.from !== "/game") {
-			navigate("/");
-			return;
-		}
-
-		let socket: WebSocket | null;
-
-		try {
-			socket = getSocket();
-			setSocket(socket);
-
-			socket.addEventListener("message", handleMessages);
-		} catch (error) {
-			console.log(error);
-		}
-
-		return () => {
-			socket?.removeEventListener("message", handleMessages);
-		};
-	}, []);
 
 	const [copied, setCopied] = useState(false);
 
@@ -122,6 +201,11 @@ const GameRoom = () => {
 	};
 
 	const initGame = async () => {
+		let socket = getSocket();
+
+		if (!socket || socket.readyState !== WebSocket.OPEN) {
+			socket = await connectSocket();
+		}
 		socket?.send(
 			JSON.stringify({
 				type: INIT_GAME,
@@ -132,14 +216,14 @@ const GameRoom = () => {
 		);
 	};
 
-	return !socket ? (
-		<p>Loading...</p>
+	return loading ? (
+		<div className="text-white">Loading...</div>
 	) : (
 		<div className="bg-gray-800 text-white">
 			{gameInitiated && <LoaderModal text="Waiting for opponent..." />}
 			<div className="py-6 bg-gray-900 shadow-lg">
 				<h1 className="p-4 text-center text-3xl font-bold text-red-500">
-					{type === "creator" ? me.name : opponent.name}'s GAME ROOM
+					{type === "creator" ? me?.name : opponent?.name}'s GAME ROOM
 				</h1>
 			</div>
 			<div className="mt-4">
@@ -162,7 +246,7 @@ const GameRoom = () => {
 				</div>
 				{type === "creator" && (
 					<p className="text-center p-1 text-gray-300">
-						*Use this GameId to invite your friends
+						*Use this RoomId to invite your friends
 					</p>
 				)}
 			</div>
@@ -170,15 +254,23 @@ const GameRoom = () => {
 			<div className="bg-gray-900 grid grid-cols-5 w-1/2 m-4 mx-auto p-4 rounded-2xl">
 				<div className="col-span-2 flex flex-col justify-center gap-2 items-center bg-gray-800 p-4 rounded-2xl">
 					<img
-						src={me.avatarUrl}
+						src={me?.avatarUrl}
 						alt="User Avatar"
 						className="h-28 w-28 rounded-full"
 					/>
-					<p className="text-center text-2xl">{me.name}</p>
+					<p className="text-center text-2xl">{me?.name}</p>
 					<div className="h-6">
 						{gameInitiated && (
 							<div className="text-white bg-green-500 flex items-center px-2 py-1 rounded-full gap-1">
-								<div className="bg-white rounded-full w-fit inline-block"><MdCheckCircle style={{ color: 'green', fontSize: '24px' }} /></div> Ready
+								<div className="bg-white rounded-full w-fit inline-block">
+									<MdCheckCircle
+										style={{
+											color: "green",
+											fontSize: "24px",
+										}}
+									/>
+								</div>{" "}
+								Ready
 							</div>
 						)}
 					</div>
@@ -197,17 +289,25 @@ const GameRoom = () => {
 					) : (
 						<>
 							<img
-								src={opponent.avatarUrl}
+								src={opponent?.avatarUrl}
 								alt="User Avatar"
 								className="h-28 w-28 rounded-full"
 							/>
 							<p className="text-center text-2xl">
-								{opponent.name}
+								{opponent?.name}
 							</p>
 							<div className="h-6">
 								{opponentGameInitiated && (
 									<div className="text-white bg-green-400 flex items-center px-2 py-1 rounded-full gap-1">
-										<div className="bg-white rounded-full w-fit inline-block"><MdCheckCircle style={{ color: 'green', fontSize: '24px' }} /></div> Ready
+										<div className="bg-white rounded-full w-fit inline-block">
+											<MdCheckCircle
+												style={{
+													color: "green",
+													fontSize: "24px",
+												}}
+											/>
+										</div>{" "}
+										Ready
 									</div>
 								)}
 							</div>

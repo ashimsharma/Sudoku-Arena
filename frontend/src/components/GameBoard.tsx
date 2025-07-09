@@ -22,6 +22,10 @@ const GameBoard = () => {
 		popupProperties
 	} = useContext(GameContext)!;
 
+	useEffect(() => {
+		console.log("Component Reloaded.")
+	}, [forceReRender]);
+
 	const isTopEdge = (i: number) => Math.floor(i / 9) % 3 === 0;
 	const isLeftEdge = (i: number) => (i % 9) % 3 === 0;
 	const isBottomEdge = (i: number) => Math.floor(i / 9) % 3 === 2;

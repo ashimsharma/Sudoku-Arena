@@ -30,7 +30,7 @@ export default function ProgressBar(){
                     ></div>
                 </div>
                 {showOpponentReaction && <div className="text-3xl left-3/4 absolute animate-drop-reverse">{opponentReaction.emoji}</div>}
-                <p className="text-yellow-400">{(opponent.name.length < 5) ? opponent.name : `${opponent.name.split(' ')[0]}`}'s Progress: {`${opponentProgress}%`}</p>
+                <p className="text-yellow-400">{(opponent?.name.length < 5) ? opponent?.name : `${opponent?.name.split(' ')[0]}`}'s Progress: {`${opponentProgress}%`}</p>
                 <p className="text-gray-300 text-sm">Mistakes: {opponentMistakes} / 5</p>
             </div>
         </div>

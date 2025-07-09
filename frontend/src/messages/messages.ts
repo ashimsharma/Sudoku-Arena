@@ -7,6 +7,7 @@ export const CLEAR_CELL = "clear_cell";
 export const TIMER_ENDED = "timer_ended";
 export const SEND_REACTION = "send_reaction";
 export const OPPONENT_REACTION = "opponent_reaction";
+export const FETCH_DATA = "fetch_data";
 
 // Backend Messages
 export const ROOM_CREATED = "room_created";
@@ -45,6 +46,10 @@ export const ALREADY_ON_CORRECT_POSITION = "already_on_correct_position";
 export const GAME_ENDED = "game_ended";
 
 export const GAME_ALREADY_ENDED = "game_already_ended";
+export const GAME_ALREADY_STARTED = "game_already_started";
+export const GAME_NOT_STARTED = "game_not_started";
+
+export const DATA_FETCHED = "data_fetched";
 
 // Extras 
 export const TIMER_COMPLETE = "timer_complete";

@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { HiArrowLeft } from "react-icons/hi";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CreateRoomModal, JoinRoomModal } from "./";
-import { getSocket } from "../config/socket.config";
-import { useDispatch, useSelector } from "react-redux";
+import { closeSocket, connectSocket, getSocket } from "../config/socket.config";
+import { connect, useDispatch, useSelector } from "react-redux";
 import { setGameId, setMe, setMeType, setOpponent } from "../redux/gameSlice";
 import {
 	CREATE_ROOM,
@@ -11,6 +11,8 @@ import {
 	ROOM_CREATED,
 	ROOM_JOINED,
 } from "../messages/messages";
+import { setUser } from "../redux/userSlice";
+import checkAuth from "../utils/authentication";
 
 interface User {
 	id: string;
@@ -22,16 +24,10 @@ interface User {
 const Game = () => {
 	const [createRoomModalOpened, setCreateRoomModalOpened] = useState(false);
 	const [joinRoomModalOpened, setJoinRoomModalOpened] = useState(false);
+	const [loading, setLoading] = useState(true);
+	let me = useSelector((state: any) => state.user).user;
 
 	const navigate = useNavigate();
-
-	const [socket, setSocket] = useState<WebSocket | null>(null);
-
-	const me: User = useSelector((state: any) => state.user).user;
-
-	if (!me) {
-		navigate("/");
-	}
 
 	const location = useLocation();
 	const dispatch = useDispatch();
@@ -44,6 +40,9 @@ const Game = () => {
 			case ROOM_CREATED:
 				const roomId = data.roomId;
 				dispatch(setGameId({ gameId: roomId }));
+
+				localStorage.setItem("activeGameId", roomId);
+
 				dispatch(setMeType({ meType: "creator" }));
 				navigate("/game/game-room", { state: { from: "/game" } });
 				break;
@@ -55,6 +54,9 @@ const Game = () => {
 				dispatch(setOpponent({ opponent: { name, avatarUrl, id } }));
 				const joinerRoomId = data.data.roomId;
 				dispatch(setGameId({ gameId: joinerRoomId }));
+
+				localStorage.setItem("activeGameId", joinerRoomId);
+
 				dispatch(setMeType({ meType: "joiner" }));
 				navigate("/game/game-room", { state: { from: "/game" } });
 				break;
@@ -62,31 +64,52 @@ const Game = () => {
 	};
 
 	useEffect(() => {
-		if (location.state === null || location.state?.from !== "/") {
-			navigate("/");
+		if(localStorage.getItem("activeGameId")){
+			navigate("/game/game-room");
+		}
+		(async () => {
+			const response = await checkAuth();
+
+			if (response) {
+				dispatch(setUser({ user: response.data.data.user }));
+				dispatch(setMe({ me: response.data.data.user }));
+				setLoading(false);
+			} else {
+				closeSocket();
+				navigate("/login");
+			}
+		})();
+	}, []);
+
+	useEffect(() => {
+		if (localStorage.getItem("activeGameId")) {
+			navigate("/game/game-room")
 			return;
 		}
 
-		let socket: WebSocket | null;
+		(async () => {
+			let socket: WebSocket | null;
 
-		try {
-			socket = getSocket();
-			setSocket(socket);
+			try {
+				socket = getSocket();
 
-			socket.addEventListener("message", handleMessages);
-		} catch (error) {
-			console.log(error);
-		}
+				if (!socket || socket.readyState !== WebSocket.OPEN) {
+					socket = await connectSocket();
+				}
 
-		// Set Me Variable as the current authenticated user in Global Redux State.
-		dispatch(setMe({ me }));
+				socket?.addEventListener("message", handleMessages);
+			} catch (error) {
+				console.log(error);
+			}
 
-		return () => {
-			socket?.removeEventListener("message", handleMessages);
-		};
+			return () => {
+				socket?.removeEventListener("message", handleMessages);
+			};
+		})();
 	}, []);
 
 	const back = () => {
+		closeSocket();
 		navigate("/");
 	};
 
@@ -103,7 +126,7 @@ const Game = () => {
 		joinRoomModalOpened && setJoinRoomModalOpened(false);
 	};
 
-	const onCreate = ({
+	const onCreate = async ({
 		difficulty,
 		gameTime,
 	}: {
@@ -111,6 +134,12 @@ const Game = () => {
 		gameTime: number;
 	}) => {
 		setCreateRoomModalOpened(false);
+
+		let socket = getSocket();
+
+		if (!socket || socket.readyState !== WebSocket.OPEN) {
+			socket = await connectSocket();
+		}
 
 		socket?.send(
 			JSON.stringify({
@@ -123,22 +152,26 @@ const Game = () => {
 		);
 	};
 
-	const onJoin = (roomId: string) => {
+	const onJoin = async (roomId: string) => {
 		setJoinRoomModalOpened(false);
+		let socket = getSocket();
 
-		socket !== null &&
-			socket.send(
-				JSON.stringify({
-					type: JOIN_ROOM,
-					params: {
-						roomId,
-					},
-				})
-			);
+		if (!socket || socket.readyState !== WebSocket.OPEN) {
+			socket = await connectSocket();
+		}
+
+		socket?.send(
+			JSON.stringify({
+				type: JOIN_ROOM,
+				params: {
+					roomId,
+				},
+			})
+		);
 	};
 
-	return !socket ? (
-		<p>Loading...</p>
+	return loading ? (
+		<div className="text-white">Loading...</div>
 	) : (
 		<div className="min-h-screen bg-gray-900 p-4">
 			<div className="flex mb-4">

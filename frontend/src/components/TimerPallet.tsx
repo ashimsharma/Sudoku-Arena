@@ -17,6 +17,10 @@ export default function TimerPallet() {
 	const duration = useSelector((state: any) => state.game).gameDuration;
 
 	useEffect(() => {
+		if(!start || !duration || !gameId){
+			return
+		};
+
 		const end = start + duration;
 		setEndTime(end);
 
@@ -40,7 +44,7 @@ export default function TimerPallet() {
 		}, 500); 
 
 		return () => clearInterval(interval);
-	}, []);
+	}, [start, duration]);
 
 	const formatTime = (seconds: number) => {
 		const m = Math.floor(seconds / 60);
