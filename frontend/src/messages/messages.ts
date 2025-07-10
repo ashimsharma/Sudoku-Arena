@@ -51,6 +51,7 @@ export const GAME_NOT_STARTED = "game_not_started";
 
 export const DATA_FETCHED = "data_fetched";
 
+export const GAME_NOT_FOUND = "game_not_found";
 // Extras 
 export const TIMER_COMPLETE = "timer_complete";
 export const BOARD_COMPELTE = "board_complete";

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../db";
-import { FriendRequestStatus } from "@prisma/client";
+import { FriendRequestStatus, GameStatus } from "@prisma/client";
 
 async function getAllGames(req: Request, res: Response) {
 	try {
@@ -23,7 +23,7 @@ async function getAllGames(req: Request, res: Response) {
 				games: {
 					where: {
 						game: {
-							status: "COMPLETED",
+							status: GameStatus.COMPLETED,
 						},
 					},
 					select: {
@@ -490,6 +490,130 @@ async function getFriends(req: Request, res: Response) {
 		console.log(error);
 	}
 }
+
+async function getActiveGames(req: Request, res: Response) {
+	try {
+		const user: any = req.user;
+
+		const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+		const foundGame = await prisma.game.findFirst(
+			{
+				where: {
+					players: {
+						some: {
+							userId: user?.id
+						}
+					},
+					createdAt: {
+						gte: oneHourAgo
+					},
+					status: GameStatus.ACTIVE
+				},
+				select: {
+					id: true,
+					players: {
+						select: {
+							id: true,
+							user: {
+								select: {
+									id: true,
+									name: true,
+									avatarUrl: true
+								}
+							}
+						}
+					}
+				},
+				orderBy: {
+					createdAt: "desc"
+				}
+			}
+		);
+
+		if(!foundGame){
+			res.status(402).json(
+				{
+					statusCode: 402,
+					success: false,
+					message: "No Active Game Found."
+				}
+			)
+			return;
+		}
+
+		res.status(200)
+		.json(
+			{
+				statusCode: 200,
+				success: true,
+				message: "Active Game Fetched.",
+				data: {game: foundGame}
+			}
+		)
+	} catch (error) {
+		console.log(error);
+	}
+}
+
+async function exitGame(req: Request, res: Response) {
+	try {
+		const user: any = req.user;
+		const opponentId = req.body.opponentId;
+		const gameId = req.body.gameId;
+
+		const updateGame = await prisma.game.update(
+			{
+				where: {
+					id: gameId
+				},
+				data: {
+					winnerId: opponentId,
+					status: GameStatus.COMPLETED,
+					draw: false
+				}
+			}
+		)
+
+		const updateUser = await prisma.user.update(
+			{
+				where: {
+					id: user?.id
+				},
+				data: {
+					noOfLosses: {
+						increment: 1
+					}
+				}
+			}
+		);
+
+		const updateOpponent = await prisma.user.update(
+			{
+				where: {
+					id: opponentId
+				},
+				data: {
+					noOfWins: {
+						increment: 1
+					}
+				}
+			}
+		)
+
+
+		res.status(200)
+		.json(
+			{
+				statusCode: 200,
+				success: true,
+				message: "Game Exited"
+			}
+		)
+	} catch (error) {
+		console.log(error);
+	}
+}
 export {
 	getAllGames,
 	getGame,
@@ -499,5 +623,7 @@ export {
 	acceptFriend,
 	rejectFriend,
     removeFriend,
-	getFriends
+	getFriends,
+	getActiveGames,
+	exitGame
 };

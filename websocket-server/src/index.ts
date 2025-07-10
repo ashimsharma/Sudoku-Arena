@@ -4,6 +4,7 @@ import {
 	CLEAR_CELL,
 	CREATE_ROOM,
 	FETCH_DATA,
+	GAME_NOT_FOUND,
 	INIT_GAME,
 	JOIN_ROOM,
 	NUMBER_ADDED,
@@ -66,42 +67,75 @@ wss.on("connection", function connection(ws, req) {
 					if (foundGame) {
 						foundGame.joinGame(ws); // Add the player to the game
 					} else {
-						// Handle game not found
-						ws.send(JSON.stringify({ type: "Game not found!" }));
+						ws.send(JSON.stringify({ type: GAME_NOT_FOUND }));
 					}
 					break;
 				case INIT_GAME:
 					const startedGame = gameManager.findGame(params.roomId);
-					startedGame.initGame(params.roomId, ws);
+					if (startedGame) {
+						startedGame.initGame(params.roomId, ws);
+					} else {
+						ws.send(JSON.stringify({ type: GAME_NOT_FOUND }));
+					}
 					break;
 				case ADD_NUMBER:
 					const numberAddedGame = gameManager.findGame(params.roomId);
-					numberAddedGame.verifyValue(
-						ws,
-						params.userId,
-						params.value,
-						params.index
-					);
+					if (numberAddedGame) {
+						numberAddedGame.verifyValue(
+							ws,
+							params.userId,
+							params.value,
+							params.index
+						);
+					}
+					else {
+						ws.send(JSON.stringify({type: GAME_NOT_FOUND}));
+					}
 					break;
 				case CLEAR_CELL:
 					const clearCellGame = gameManager.findGame(params.roomId);
-					clearCellGame.clearValue(params.userId, params.index);
+					if(clearCellGame){
+						clearCellGame.clearValue(params.userId, params.index);
+					}
+					else{
+						ws.send(JSON.stringify({type: GAME_NOT_FOUND}))
+					}
 					break;
 				case TIMER_ENDED:
 					const timerEndedGame = gameManager.findGame(params.roomId);
-					timerEndedGame.endTimer(params.userId);
+					if(timerEndedGame){
+						timerEndedGame.endTimer(params.userId);
+					}
+					else {
+						ws.send(JSON.stringify({type: GAME_NOT_FOUND}));
+					}
 					break;
 				case SEND_REACTION:
 					const reactedGame = gameManager.findGame(params.roomId);
-					reactedGame.sendReaction(params.userId, params.reactionId);
+					if(reactedGame){
+						reactedGame.sendReaction(params.userId, params.reactionId);
+					}
+					else{
+						ws.send(JSON.stringify({type: GAME_NOT_FOUND}));
+					}
 					break;
 				case FETCH_DATA:
 					if (params.page === "game_room") {
 						const foundGame = gameManager.findGame(params.roomId);
-						foundGame.fetchGameRoomData(ws);
+						if(foundGame){
+							foundGame.fetchGameRoomData(ws);
+						}
+						else{
+							ws.send(JSON.stringify({type: GAME_NOT_FOUND}));
+						}
 					} else if (params.page === "game_board_screen") {
 						const foundGame = gameManager.findGame(params.roomId);
-						foundGame.fetchGameBoardScreenData(ws);
+						if(foundGame){
+							foundGame.fetchGameBoardScreenData(ws);
+						}
+						else {
+							ws.send(JSON.stringify({type: GAME_NOT_FOUND}));
+						}
 					}
 					break;
 				default:

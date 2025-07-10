@@ -11,6 +11,7 @@ import {
 	GAME_ALREADY_ENDED,
 	GAME_ALREADY_STARTED,
 	GAME_INITIATED,
+	GAME_NOT_FOUND,
 	INIT_GAME,
 	OPPONENT_GAME_INITIATED,
 	OPPONENT_JOINED,
@@ -186,6 +187,10 @@ const GameRoom = () => {
 				navigate("/game/game-room/game-board");
 				break;
 			case GAME_ALREADY_ENDED:
+				localStorage.clear();
+				navigate("/game");
+				break;
+			case GAME_NOT_FOUND:
 				localStorage.clear();
 				navigate("/game");
 				break;

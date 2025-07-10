@@ -22,6 +22,7 @@ import {
 	GAME_ALREADY_ENDED,
 	GAME_ALREADY_STARTED,
 	GAME_ENDED,
+	GAME_NOT_FOUND,
 	GAME_NOT_STARTED,
 	OPPONENT_CORRECT_CELL,
 	OPPONENT_MISTAKE,
@@ -337,6 +338,11 @@ export default function GameBoardScreen() {
 				navigate("/game/game-room");
 				break;
 			case GAME_ALREADY_ENDED:
+				localStorage.clear();
+				navigate("/game");
+				break;
+			case GAME_NOT_FOUND:
+				localStorage.clear();
 				navigate("/game");
 				break;
 		}
