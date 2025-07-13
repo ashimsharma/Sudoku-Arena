@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../db";
-import { FriendRequestStatus, GameStatus } from "@prisma/client";
+import { FriendRequestStatus, GameStatus, InviteStatus } from "@prisma/client";
 
 async function getAllGames(req: Request, res: Response) {
 	try {
@@ -150,7 +150,6 @@ async function getUser(req: Request, res: Response) {
 				noOfWins: true,
 				noOfDraws: true,
 				noOfLosses: true,
-                
 			},
 		});
 
@@ -163,37 +162,35 @@ async function getUser(req: Request, res: Response) {
 			return;
 		}
 
-        const totalFriends  = await prisma.friend.findMany(
-            {
-                where: {
-                    status: FriendRequestStatus.ACCEPTED,
-                    OR: [
-                        {
-                            requesterId: foundUser.id
-                        },
-                        {
-                            receiverId: foundUser.id
-                        }
-                    ]
-                }
-            }
-        )
+		const totalFriends = await prisma.friend.findMany({
+			where: {
+				status: FriendRequestStatus.ACCEPTED,
+				OR: [
+					{
+						requesterId: foundUser.id,
+					},
+					{
+						receiverId: foundUser.id,
+					},
+				],
+			},
+		});
 
 		foundUser.rank = Number(rank[0].rank);
-        foundUser.totalFriends = totalFriends.length;
+		foundUser.totalFriends = totalFriends.length;
 
 		const friendRequest = await prisma.friend.findFirst({
 			where: {
 				OR: [
-                    {
-                        requesterId: user.id,
-                        receiverId: foundUser.id
-                    },
-                    {
-                        requesterId: foundUser.id,
-                        receiverId: user.id
-                    }
-                ]
+					{
+						requesterId: user.id,
+						receiverId: foundUser.id,
+					},
+					{
+						requesterId: foundUser.id,
+						receiverId: user.id,
+					},
+				],
 			},
 			select: {
 				id: true,
@@ -215,7 +212,7 @@ async function getUser(req: Request, res: Response) {
 						? true
 						: false,
 				hasRequested:
-					friendRequest?.requesterId === user.id ? true : false
+					friendRequest?.requesterId === user.id ? true : false,
 			},
 		});
 	} catch (error) {
@@ -229,28 +226,20 @@ async function addFriend(req: Request, res: Response) {
 
 		const userId: string = req.body.userId;
 
-        const existingFriendRequest = await prisma.friend.findFirst(
-            {
-                where: {
-                    OR: [
-                        {requesterId: user.id},
-                        {receiverId: user.id}
-                    ]
-                }
-            }
-        )
+		const existingFriendRequest = await prisma.friend.findFirst({
+			where: {
+				OR: [{ requesterId: user.id }, { receiverId: user.id }],
+			},
+		});
 
-        if(existingFriendRequest){
-            res.status(402)
-            .json(
-                {
-                    statusCode: 402,
-                    success: false,
-                    message: "Friend Request Failed"
-                }
-            )
-            return;
-        }
+		if (existingFriendRequest) {
+			res.status(402).json({
+				statusCode: 402,
+				success: false,
+				message: "Friend Request Failed",
+			});
+			return;
+		}
 
 		const friendRequest = await prisma.friend.create({
 			data: {
@@ -266,7 +255,7 @@ async function addFriend(req: Request, res: Response) {
 				success: false,
 				message: "Friend Request Send failed.",
 			});
-            return;
+			return;
 		}
 
 		res.status(200).json({
@@ -364,7 +353,7 @@ async function rejectFriend(req: Request, res: Response) {
 		const friendRequestRejected = await prisma.friend.delete({
 			where: {
 				id: requestId,
-			}
+			},
 		});
 
 		if (!friendRequestRejected) {
@@ -392,32 +381,24 @@ async function removeFriend(req: Request, res: Response) {
 
 		const requestId = req.body.requestId;
 
-        const existingFriendRequest = await prisma.friend.findFirst(
-            {
-                where: {
-                    OR: [
-                        {requesterId: user.id},
-                        {receiverId: user.id}
-                    ]
-                }
-            }
-        )
+		const existingFriendRequest = await prisma.friend.findFirst({
+			where: {
+				OR: [{ requesterId: user.id }, { receiverId: user.id }],
+			},
+		});
 
-        if(!existingFriendRequest){
-            res.status(402)
-            .json(
-                {
-                    statusCode: 402,
-                    success: false,
-                    message: "Failed to remove friend."
-                }
-            )
-            return;
-        }
+		if (!existingFriendRequest) {
+			res.status(402).json({
+				statusCode: 402,
+				success: false,
+				message: "Failed to remove friend.",
+			});
+			return;
+		}
 		const friendRemoved = await prisma.friend.delete({
 			where: {
 				id: requestId,
-			}
+			},
 		});
 
 		if (!friendRemoved) {
@@ -445,10 +426,7 @@ async function getFriends(req: Request, res: Response) {
 
 		let friends = await prisma.friend.findMany({
 			where: {
-				OR: [
-					{receiverId: user?.id},
-					{requesterId: user?.id}
-				],
+				OR: [{ receiverId: user?.id }, { requesterId: user?.id }],
 				status: FriendRequestStatus.ACCEPTED,
 			},
 			select: {
@@ -457,15 +435,15 @@ async function getFriends(req: Request, res: Response) {
 					select: {
 						id: true,
 						name: true,
-						avatarUrl: true
-					}
+						avatarUrl: true,
+					},
 				},
 				receiver: {
 					select: {
 						id: true,
 						name: true,
-						avatarUrl: true
-					}
+						avatarUrl: true,
+					},
 				},
 				createdAt: true,
 			},
@@ -478,7 +456,7 @@ async function getFriends(req: Request, res: Response) {
 				message: "Failed to fetch friend list.",
 			});
 			return;
-		}	
+		}
 
 		res.status(200).json({
 			statusCode: 200,
@@ -497,60 +475,53 @@ async function getActiveGames(req: Request, res: Response) {
 
 		const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
-		const foundGame = await prisma.game.findFirst(
-			{
-				where: {
-					players: {
-						some: {
-							userId: user?.id
-						}
+		const foundGame = await prisma.game.findFirst({
+			where: {
+				players: {
+					some: {
+						userId: user?.id,
 					},
-					createdAt: {
-						gte: oneHourAgo
+				},
+				createdAt: {
+					gte: oneHourAgo,
+				},
+				status: GameStatus.ACTIVE,
+			},
+			select: {
+				id: true,
+				players: {
+					select: {
+						id: true,
+						user: {
+							select: {
+								id: true,
+								name: true,
+								avatarUrl: true,
+							},
+						},
 					},
-					status: GameStatus.ACTIVE
 				},
-				select: {
-					id: true,
-					players: {
-						select: {
-							id: true,
-							user: {
-								select: {
-									id: true,
-									name: true,
-									avatarUrl: true
-								}
-							}
-						}
-					}
-				},
-				orderBy: {
-					createdAt: "desc"
-				}
-			}
-		);
+			},
+			orderBy: {
+				createdAt: "desc",
+			},
+		});
 
-		if(!foundGame){
-			res.status(402).json(
-				{
-					statusCode: 402,
-					success: false,
-					message: "No Active Game Found."
-				}
-			)
+		if (!foundGame) {
+			res.status(402).json({
+				statusCode: 402,
+				success: false,
+				message: "No Active Game Found.",
+			});
 			return;
 		}
 
-		res.status(200)
-		.json(
-			{
-				statusCode: 200,
-				success: true,
-				message: "Active Game Fetched.",
-				data: {game: foundGame}
-			}
-		)
+		res.status(200).json({
+			statusCode: 200,
+			success: true,
+			message: "Active Game Fetched.",
+			data: { game: foundGame },
+		});
 	} catch (error) {
 		console.log(error);
 	}
@@ -562,58 +533,141 @@ async function exitGame(req: Request, res: Response) {
 		const opponentId = req.body.opponentId;
 		const gameId = req.body.gameId;
 
-		const updateGame = await prisma.game.update(
-			{
-				where: {
-					id: gameId
+		const updateGame = await prisma.game.update({
+			where: {
+				id: gameId,
+			},
+			data: {
+				winnerId: opponentId,
+				status: GameStatus.COMPLETED,
+				draw: false,
+			},
+		});
+
+		const updateUser = await prisma.user.update({
+			where: {
+				id: user?.id,
+			},
+			data: {
+				noOfLosses: {
+					increment: 1,
 				},
-				data: {
-					winnerId: opponentId,
-					status: GameStatus.COMPLETED,
-					draw: false
-				}
-			}
-		)
+			},
+		});
 
-		const updateUser = await prisma.user.update(
-			{
-				where: {
-					id: user?.id
+		const updateOpponent = await prisma.user.update({
+			where: {
+				id: opponentId,
+			},
+			data: {
+				noOfWins: {
+					increment: 1,
 				},
-				data: {
-					noOfLosses: {
-						increment: 1
-					}
-				}
-			}
-		);
+			},
+		});
 
-		const updateOpponent = await prisma.user.update(
-			{
-				where: {
-					id: opponentId
-				},
-				data: {
-					noOfWins: {
-						increment: 1
-					}
-				}
-			}
-		)
-
-
-		res.status(200)
-		.json(
-			{
-				statusCode: 200,
-				success: true,
-				message: "Game Exited"
-			}
-		)
+		res.status(200).json({
+			statusCode: 200,
+			success: true,
+			message: "Game Exited",
+		});
 	} catch (error) {
 		console.log(error);
 	}
 }
+
+async function invite(req: Request, res: Response) {
+	try {
+		const user: any = req.user;
+		const friendId = req.body.friendId;
+		const gameId = req.body.gameId;
+
+		const existingInvite = await prisma.invite.findFirst({
+			where: {
+				AND: [{ inviterId: user.id }, { inviteeId: user.id }],
+			},
+		});
+
+		if (existingInvite) {
+			res.status(402).json({
+				statusCode: 402,
+				success: false,
+				message: "Invite Failed",
+			});
+			return;
+		}
+
+		const invite = await prisma.invite.create({
+			data: {
+				inviterId: user?.id as string,
+				inviteeId: friendId,
+				status: InviteStatus.PENDING,
+				gameId: gameId,
+			},
+		});
+
+		if (!invite) {
+			res.status(402).json({
+				statusCode: 402,
+				success: false,
+				message: "Invite Failed.",
+			});
+			return;
+		}
+
+		res.status(200).json({
+			statusCode: 200,
+			success: true,
+			message: "Invite Sent.",
+		});
+	} catch (error) {
+		console.log(error);
+	}
+}
+
+async function getInvites(req: Request, res: Response) {
+	try {
+		const user: any = req.user;
+
+		const invites = await prisma.invite.findMany({
+			where: {
+				inviteeId: user.id,
+				status: InviteStatus.PENDING,
+			},
+			select: {
+				id: true,
+				inviter: {
+					select: {
+						id: true,
+						name: true,
+						avatarUrl: true,
+					},
+				},
+				gameId: true,
+				createdAt: true,
+			},
+		});
+
+		if (!invites) {
+			res.status(402).json({
+				statusCode: 402,
+				succes: false,
+				message: "Failed to fetch invites.",
+			});
+			return;
+		}
+
+		res.status(200).json({
+			statusCode: 200,
+			success: true,
+			message: "Invites fetched.",
+			data: { invites: invites },
+		});
+	} catch (error) {
+		console.log(error);
+	}
+}
+
 export {
 	getAllGames,
 	getGame,
@@ -622,8 +676,10 @@ export {
 	getFriendRequests,
 	acceptFriend,
 	rejectFriend,
-    removeFriend,
+	removeFriend,
 	getFriends,
 	getActiveGames,
-	exitGame
+	exitGame,
+	invite,
+	getInvites,
 };

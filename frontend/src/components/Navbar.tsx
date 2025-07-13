@@ -22,6 +22,11 @@ const Navbar = () => {
 			}
 		})();
 	}, []);
+
+	useEffect(() => {
+
+	}, []);
+
 	return (
 		<nav className="bg-gray-900 py-6 shadow-lg">
 			<div className="container mx-auto flex justify-between items-center px-6">

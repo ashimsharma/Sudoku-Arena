@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import { setUser } from "../redux/userSlice";
 import { FaCircleUser } from "react-icons/fa6";
 import axios from "axios";
-import ActiveGameCard from "./ActiveGameCard";
+import {ActiveGameCard, Invites} from "./";
 
 export default function Home() {
 	const navigate = useNavigate();
@@ -34,7 +34,6 @@ export default function Home() {
 				});
 	
 				if (response) {
-					console.log(response);
 					setActiveGame(response.data.data.game);
 				}
 			} catch (error) {
@@ -70,7 +69,7 @@ export default function Home() {
 					</div>
 				</div>
 				<div className="rounded-md min-h-full flex justify-center items-center">
-					No new Invites
+					<Invites />
 				</div>
 			</div>
 		</div>

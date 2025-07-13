@@ -27,12 +27,15 @@ import {
 	setGameId,
 	setMeType,
 } from "../redux/gameSlice";
-import LoaderModal from "./LoaderModal";
 import { setUser } from "../redux/userSlice";
 import checkAuth from "../utils/authentication";
+import axios from "axios";
+import {FriendListModal, LoaderModal} from "./";
 
 const GameRoom = () => {
 	const [loading, setLoading] = useState(true);
+	const [inviteButton, setInviteButton] = useState("Invite");
+	const [openFriendList, setOpenFriendList] = useState(false);
 
 	const dispatch = useDispatch();
 
@@ -226,13 +229,14 @@ const GameRoom = () => {
 	) : (
 		<div className="bg-gray-800 text-white">
 			{gameInitiated && <LoaderModal text="Waiting for opponent..." />}
+			{openFriendList && <FriendListModal setOpenFriendList={setOpenFriendList} user={me} gameId={gameId}/>}
 			<div className="py-6 bg-gray-900 shadow-lg">
 				<h1 className="p-4 text-center text-3xl font-bold text-red-500">
 					{type === "creator" ? me?.name : opponent?.name}'s GAME ROOM
 				</h1>
 			</div>
 			<div className="mt-4">
-				<div className="bg-gray-900 p-4 rounded-2xl flex items-center space-x-2 shadow-md w-1/3 mx-auto">
+				<div className="bg-gray-900 p-4 rounded-2xl flex items-center space-x-2 shadow-md w-1/3 lg:w-3/5 md:w-4/5 mx-auto">
 					<input
 						type="text"
 						value={gameId}
@@ -256,7 +260,7 @@ const GameRoom = () => {
 				)}
 			</div>
 
-			<div className="bg-gray-900 grid grid-cols-5 w-1/2 m-4 mx-auto p-4 rounded-2xl">
+			<div className="bg-gray-900 grid grid-cols-5 w-1/2 m-4 mx-auto p-4 rounded-2xl lg:w-3/5 md:w-4/5">
 				<div className="col-span-2 flex flex-col justify-center gap-2 items-center bg-gray-800 p-4 rounded-2xl">
 					<img
 						src={me?.avatarUrl}
@@ -327,6 +331,17 @@ const GameRoom = () => {
 						onClick={initGame}
 					>
 						Start Game
+					</button>
+				</div>
+			)}
+
+			{me && !opponent && type === "creator" && (
+				<div className="text-center">
+					<button
+						className="bg-blue-500 hover:bg-blue-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg"
+						onClick={() => setOpenFriendList(true)}
+					>
+						Invite Friend
 					</button>
 				</div>
 			)}

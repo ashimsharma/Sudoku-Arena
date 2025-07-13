@@ -13,7 +13,6 @@ export default function Friends() {
 	const [loading, setLoading] = useState(true);
 	const [friendsChanged, setFriendsChanged] = useState(false);
 	const [removeButton, setRemoveButton] = useState("Remove");
-	const [inviteButton, setInviteButton] = useState("Invite");
 	const user = useSelector((state: any) => state.user).user;
 
 	useEffect(() => {
@@ -140,11 +139,11 @@ export default function Friends() {
 								</span>
 							</div>
 							<div className="flex space-x-2">
-								<button className="bg-red-500 text-white text-md px-3 py-1 rounded hover:bg-red-600" onClick={(e) => removeFriend(e, friend.id)}>
+								<button
+									className="bg-red-500 text-white text-md px-3 py-1 rounded hover:bg-red-600"
+									onClick={(e) => removeFriend(e, friend.id)}
+								>
 									{removeButton}
-								</button>
-								<button className="bg-blue-500 text-white text-md px-3 py-1 rounded hover:bg-blue-600">
-									{inviteButton}
 								</button>
 							</div>
 						</div>

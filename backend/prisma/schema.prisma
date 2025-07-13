@@ -25,6 +25,9 @@ model User {
   requestedFriends     Friend[] @relation("RequestedFriends")
   receivedFriends    Friend[] @relation("ReceivedFriends")
 
+  sentInvites Invite[] @relation("SentInvites")
+  receivedInvites Invite[] @relation("ReceivedInvites")
+
   noOfWins   Int  @default(0)
   noOfLosses   Int @default(0)
   noOfDraws   Int @default(0)
@@ -83,8 +86,27 @@ model Friend {
   @@unique([requesterId, receiverId])
 }
 
-
 enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Invite {
+  id String @id @default(uuid())
+  inviter User @relation("SentInvites", fields: [inviterId], references: [id])
+  inviterId String
+
+  invitee User @relation("ReceivedInvites", fields: [inviteeId], references: [id])
+  inviteeId String
+
+  gameId String
+  
+  status String
+  createdAt DateTime @default(now())
+}
+
+enum InviteStatus {
   PENDING
   ACCEPTED
   REJECTED

@@ -24,9 +24,9 @@ export default function ActiveGameCard({ activeGame, setActiveGame }: any) {
 			<h2 className="text-xl font-semibold mb-4">Active Game Found</h2>
 			<div className="flex items-center gap-2 m-2">
                 <div>
-                    <img src={opponent.user.avatarUrl} alt={opponent.user.name} className="rounded-full h-12 w-12" />
+                    <img src={opponent?.user.avatarUrl} alt={opponent?.user.name} className="rounded-full h-12 w-12" />
                 </div>
-				<h3 className="text-white">{opponent.user.name}</h3>
+				<h3 className="text-white">{opponent?.user.name}</h3>
 			</div>
 			<div className="grid grid-cols-2 gap-3">
 				<button
