@@ -1,6 +1,6 @@
 import { Router } from "express";
 import verifyJWT from "../middlewares/auth.middleware";
-import { acceptFriend, addFriend, exitGame, getActiveGames, getAllGames, getFriendRequests, getFriends, getGame, getInvites, getUser, invite, rejectFriend, removeFriend } from "../controllers/user";
+import { acceptFriend, acceptInvite, addFriend, exitGame, getActiveGames, getAllGames, getFriendRequests, getFriends, getGame, getInvites, getUser, invite, rejectFriend, rejectInvite, removeFriend } from "../controllers/user";
 
 const userRouter = Router();
 
@@ -17,5 +17,7 @@ userRouter.route("/get-active-game").get(verifyJWT, getActiveGames);
 userRouter.route("/exit-game").post(verifyJWT, exitGame);
 userRouter.route("/invite").post(verifyJWT, invite);
 userRouter.route("/get-invites").get(verifyJWT, getInvites);
+userRouter.route("/accept-invite").post(verifyJWT, acceptInvite);
+userRouter.route("/reject-invite").post(verifyJWT, rejectInvite);
 
 export default userRouter;

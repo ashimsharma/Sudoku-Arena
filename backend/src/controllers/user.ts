@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import prisma from "../db";
 import { FriendRequestStatus, GameStatus, InviteStatus } from "@prisma/client";
+import { subMinutes } from "date-fns";
 
 async function getAllGames(req: Request, res: Response) {
 	try {
@@ -629,10 +630,15 @@ async function getInvites(req: Request, res: Response) {
 	try {
 		const user: any = req.user;
 
+		const tenMinutesAgo = subMinutes(new Date(), 10);
+
 		const invites = await prisma.invite.findMany({
 			where: {
 				inviteeId: user.id,
 				status: InviteStatus.PENDING,
+				createdAt: {
+					gte: tenMinutesAgo,
+				},
 			},
 			select: {
 				id: true,
@@ -668,6 +674,71 @@ async function getInvites(req: Request, res: Response) {
 	}
 }
 
+async function acceptInvite(req: Request, res: Response) {
+	try {
+		const user: any = req.user;
+		const inviteId = req.body.inviteId;
+
+		const inviteAccepted = await prisma.invite.update({
+			where: {
+				id: inviteId,
+			},
+			data: {
+				status: InviteStatus.ACCEPTED,
+			},
+		});
+
+		if (!inviteAccepted) {
+			res.status(402).json({
+				statusCode: 402,
+				success: false,
+				message: "Failed to Accept Invite.",
+			});
+		}
+
+		res.status(200).json({
+			statusCode: 200,
+			data: {gameId: inviteAccepted.gameId},
+			success: true,
+			message: "Invite Accepted.",
+		});
+	} catch (error) {
+		console.log(error);
+	}
+}
+
+async function rejectInvite(req: Request, res: Response) {
+	try {
+		const user: any = req.user;
+		const inviteId = req.body.inviteId;
+
+		const inviteRejected = await prisma.invite.update({
+			where: {
+				id: inviteId,
+			},
+			data: {
+				status: InviteStatus.REJECTED,
+			},
+		});
+
+		if (!inviteRejected) {
+			res.status(402).json({
+				statusCode: 402,
+				success: false,
+				message: "Failed to Reject Invite.",
+			});
+		}
+
+		res.status(200).json({
+			statusCode: 200,
+			success: true,
+			message: "Invite Rejected.",
+		});
+	} catch (error) {
+		console.log(error);
+	}
+}
+
 export {
 	getAllGames,
 	getGame,
@@ -682,4 +753,6 @@ export {
 	exitGame,
 	invite,
 	getInvites,
+	acceptInvite,
+	rejectInvite,
 };
