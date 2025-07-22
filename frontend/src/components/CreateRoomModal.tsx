@@ -15,6 +15,7 @@ type CreateRoomModalProps = {
 const CreateRoomModal = ({ onClose, onCreate }: CreateRoomModalProps) => {
 	const [difficulty, setDifficulty] = useState<Difficulty>("easy");
 	const [gameTime, setGameTime] = useState<number>(10);
+
 	const timerOptions = [10, 15, 20, 30];
 
 	return (

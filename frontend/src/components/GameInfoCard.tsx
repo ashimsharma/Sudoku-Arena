@@ -1,12 +1,13 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { GameInfoBoard } from "./";
 import { IoMdTrophy } from "react-icons/io";
 
-export default function GameInfoCard({ player, winner }: any) {
+export default function GameInfoCard({ player, winner, gameId }: any) {
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const navigateToUserProfile = (playerId: string) => {
-		navigate(`/user/profile?userId=${playerId}`)
+		navigate(`/user/profile?userId=${playerId}`, {state: {from: `${location.pathname}?gameId=${gameId}`}})
 	}
 	return (
 		<div className="bg-gray-700 text-white rounded-xl shadow-md p-6 space-y-4 w-2/5 m-auto md:w-full">

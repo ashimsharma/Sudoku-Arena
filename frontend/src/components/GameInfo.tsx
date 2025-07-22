@@ -82,12 +82,14 @@ export default function GameInfo() {
 			<div className="mt-4 text-white">
 				{selected === "Opponent" && (
 					<GameInfoCard
+						gameId={gameId}
 						player={gameData.players.find((player: any) => player.user.id !== user.id)}
                         winner={gameData.winner}
 					/>
 				)}
 				{selected === "You" && (
 					<GameInfoCard
+						gameId={gameId}
 						player={gameData.players.find((player: any) => player.user.id === user.id)}
                         winner={gameData.winner}
 					/>

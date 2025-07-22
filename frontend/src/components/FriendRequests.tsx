@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { HiArrowLeft } from "react-icons/hi";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import checkAuth from "../utils/authentication";
 import { useDispatch } from "react-redux";
 import { setUser } from "../redux/userSlice";
@@ -14,6 +14,7 @@ export default function FriendRequests() {
     const [friendRequetsChanged, setFriendRequestsChanged] = useState(false);
     const [acceptButton, setAcceptButton] = useState("Accept");
     const [rejectButton, setRejectButton] = useState("Reject");
+	const location = useLocation();
 
 	useEffect(() => {
 		(async () => {
@@ -46,7 +47,12 @@ export default function FriendRequests() {
 	}, [friendRequetsChanged]);
 
 	const back = () => {
-		navigate("/");
+		if(location?.state?.from){
+			navigate(location.state.from)
+		}
+		else{
+			navigate("/")
+		}
 	};
 
     const rejectFriendRequest = async (e: any, requestId: string) => {

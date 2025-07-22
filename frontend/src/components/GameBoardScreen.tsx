@@ -7,6 +7,7 @@ import {
 	ProgressBar,
 	ResultModal,
 	ReactionBar,
+	LoaderModal,
 } from "./";
 import { useState, createContext, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -114,8 +115,8 @@ export default function GameBoardScreen() {
 	const me = useSelector((state: any) => state.game).me;
 	const opponent = useSelector((state: any) => state.game).opponent;
 	const type = useSelector((state: any) => state.game).meType;
+	const startTime = useSelector((state: any) => state.game).startTime;
 
-	const location = useLocation();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 
@@ -291,48 +292,60 @@ export default function GameBoardScreen() {
 				}, 2000);
 				break;
 			case DATA_FETCHED:
-				dispatch(setGameId({ gameId: data.data.roomId }));
-				dispatch(setMeType({ meType: data.data.type }));
-				if (data.data.opponent.id) {
-					const opponent = {
-						id: data.data.opponent.id,
-						name: data.data.opponent.name,
-						avatarUrl: data.data.opponent.avatarUrl,
-					};
-					dispatch(setOpponent({ opponent: opponent }));
-				}
-				dispatch(
-					setInitialGameState({
-						initialGameState: data.data.initialGameState,
-					})
-				);
-				dispatch(
-					setCurrentGameState({
-						currentGameState: data.data.currentGameState,
-					})
-				);
-				dispatch(
-					setEmojiReactions({
-						emojiReactions: data.data.emojiReactions,
-					})
-				);
-				dispatch(setStartTime({ startTime: data.data.startTime }));
-				dispatch(
-					setGameDuration({ gameDuration: data.data.gameDuration })
-				);
-				dispatch(setMeProgress({meProgress: data.data.percentageComplete}));
-				dispatch(setTotalMistakes({totalMistakes: data.data.mistakes}));
-				dispatch(
-					setOpponentProgress({
-						opponentProgress: data.data.opponent.percentageComplete,
-					})
-				);
-				dispatch(
-					setOpponentMistakes({
-						opponentMistakes: data.data.opponent.mistakes,
-					})
-				);
-				setLoading(false);
+				(async () => {
+					dispatch(setGameId({ gameId: data.data.roomId }));
+					dispatch(setMeType({ meType: data.data.type }));
+					if (data.data.opponent.id) {
+						const opponent = {
+							id: data.data.opponent.id,
+							name: data.data.opponent.name,
+							avatarUrl: data.data.opponent.avatarUrl,
+						};
+						dispatch(setOpponent({ opponent: opponent }));
+					}
+					dispatch(
+						setInitialGameState({
+							initialGameState: data.data.initialGameState,
+						})
+					);
+					dispatch(
+						setCurrentGameState({
+							currentGameState: data.data.currentGameState,
+						})
+					);
+					dispatch(
+						setEmojiReactions({
+							emojiReactions: data.data.emojiReactions,
+						})
+					);
+					dispatch(setStartTime({ startTime: data.data.startTime }));
+					dispatch(
+						setGameDuration({
+							gameDuration: data.data.gameDuration,
+						})
+					);
+					dispatch(
+						setMeProgress({
+							meProgress: data.data.percentageComplete,
+						})
+					);
+					dispatch(
+						setTotalMistakes({ totalMistakes: data.data.mistakes })
+					);
+					dispatch(
+						setOpponentProgress({
+							opponentProgress:
+								data.data.opponent.percentageComplete,
+						})
+					);
+					dispatch(
+						setOpponentMistakes({
+							opponentMistakes: data.data.opponent.mistakes,
+						})
+					);
+					waitUntilStart(startTime);
+					setLoading(false);
+				})();
 				break;
 			case GAME_NOT_STARTED:
 				navigate("/game/game-room");
@@ -368,104 +381,100 @@ export default function GameBoardScreen() {
 		}
 	};
 
-	const handleKeyPress = useCallback(
-		(e: KeyboardEvent) => {
-			e.preventDefault();
+	const handleKeyPress = (e: KeyboardEvent) => {
+		e.preventDefault();
 
-			if (!keyPressed.current) {
-				return;
-			}
+		if (!keyPressed.current) {
+			return;
+		}
 
-			if (selectedCellIndex.current === -1) {
-				return;
-			}
+		if (selectedCellIndex.current === -1) {
+			return;
+		}
 
-			if (
-				["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(
-					e.key
-				)
-			) {
-				console.log(selectedCellIndex.current);
-				shiftCell(e);
-				return;
-			}
+		if (
+			["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)
+		) {
+			console.log(selectedCellIndex.current);
+			shiftCell(e);
+			keyPressed.current = false;
+			return;
+		}
 
-			if (
-				![
-					"1",
-					"2",
-					"3",
-					"4",
-					"5",
-					"6",
-					"7",
-					"8",
-					"9",
-					"Backspace",
-				].includes(e.key)
-			) {
-				return;
-			}
+		if (
+			![
+				"1",
+				"2",
+				"3",
+				"4",
+				"5",
+				"6",
+				"7",
+				"8",
+				"9",
+				"Backspace",
+			].includes(e.key)
+		) {
+			return;
+		}
 
-			let socket = getSocket();
+		let socket = getSocket();
 
-			if (!currentGameState[selectedCellIndex.current].canBeTyped) {
-				keyPressed.current = false;
+		if (!currentGameState[selectedCellIndex.current].canBeTyped) {
+			keyPressed.current = false;
+			setPopupProperties({
+				show: true,
+				isPositiveMessage: false,
+				message: "Cannot be Typed.",
+			});
+
+			setTimeout(() => {
 				setPopupProperties({
-					show: true,
+					show: false,
 					isPositiveMessage: false,
-					message: "Cannot be Typed.",
+					message: "",
 				});
+			}, 2000);
+			return;
+		}
 
-				setTimeout(() => {
-					setPopupProperties({
-						show: false,
-						isPositiveMessage: false,
-						message: "",
-					});
-				}, 2000);
-				return;
-			}
-
-			if (e.key === "Backspace") {
-				socket?.send(
-					JSON.stringify({
-						type: CLEAR_CELL,
-						params: {
-							roomId: gameId,
-							userId: me?.id,
-							index: selectedCellIndex.current,
-						},
-					})
-				);
-
-				keyPressed.current = false;
-				return;
-			}
-
-			const clickedKey = Number(e.key);
-
-			if (Number.isNaN(clickedKey)) return;
-			if (clickedKey === 0) return;
-
+		if (e.key === "Backspace") {
 			socket?.send(
 				JSON.stringify({
-					type: ADD_NUMBER,
+					type: CLEAR_CELL,
 					params: {
 						roomId: gameId,
 						userId: me?.id,
-						value: clickedKey,
 						index: selectedCellIndex.current,
 					},
 				})
 			);
+
 			keyPressed.current = false;
-		},
-		[currentGameState]
-	);
+			return;
+		}
+
+		const clickedKey = Number(e.key);
+
+		if (Number.isNaN(clickedKey)) return;
+		if (clickedKey === 0) return;
+
+		socket?.send(
+			JSON.stringify({
+				type: ADD_NUMBER,
+				params: {
+					roomId: gameId,
+					userId: me?.id,
+					value: clickedKey,
+					index: selectedCellIndex.current,
+				},
+			})
+		);
+		keyPressed.current = false;
+	};
 
 	useEffect(() => {
-		if(!localStorage.getItem("activeGameId")){
+		if (!localStorage.getItem("activeGameId")) {
 			closeSocket();
 			navigate("/");
 			return;
@@ -484,7 +493,7 @@ export default function GameBoardScreen() {
 	}, []);
 
 	useEffect(() => {
-		if(!localStorage.getItem("activeGameId")){
+		if (!localStorage.getItem("activeGameId")) {
 			closeSocket();
 			navigate("/");
 			return;
@@ -511,7 +520,7 @@ export default function GameBoardScreen() {
 	}, []);
 
 	useEffect(() => {
-		if(!localStorage.getItem("activeGameId")){
+		if (!localStorage.getItem("activeGameId")) {
 			closeSocket();
 			navigate("/");
 			return;
@@ -528,14 +537,24 @@ export default function GameBoardScreen() {
 		};
 	}, [currentGameState]);
 
+	async function waitUntilStart(startTime: number) {
+		const delay = startTime - Date.now();
+		if (delay <= 0) return;
+
+		return new Promise((resolve) => {
+			setTimeout(resolve, delay);
+		});
+	}
+
 	useEffect(() => {
-		if(!localStorage.getItem("activeGameId")){
+		if (!localStorage.getItem("activeGameId")) {
 			closeSocket();
 			navigate("/");
 			return;
 		}
 		(async () => {
 			if (gameId && type) {
+				await waitUntilStart(startTime);
 				setLoading(false);
 				return;
 			}
@@ -558,7 +577,9 @@ export default function GameBoardScreen() {
 		})();
 	}, []);
 
-	return loading ? (<div className="text-white">Loading...</div>) : (
+	return loading ? (
+		<LoaderModal text="Loading..." />
+	) : (
 		<GameContext.Provider
 			value={{
 				game,

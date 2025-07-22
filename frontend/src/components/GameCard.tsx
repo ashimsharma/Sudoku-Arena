@@ -1,6 +1,6 @@
 import { FaCircleUser } from "react-icons/fa6";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function GameCard({
 	id,
@@ -21,10 +21,11 @@ export default function GameCard({
 	};
 
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const navigateToUserProfile = (e: any, playerId: string) => {
 		e.stopPropagation();
-		navigate(`/user/profile?userId=${playerId}`)
+		navigate(`/user/profile?userId=${playerId}`, {state: {from: location.pathname}});
 	}
 
 	return (

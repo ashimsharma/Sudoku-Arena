@@ -1,5 +1,5 @@
 import { FaCircleUser } from "react-icons/fa6";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { FaUserFriends } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -7,6 +7,7 @@ import axios from "axios";
 const Navbar = () => {
 	const navigate = useNavigate();
 	const [noOfFriendRequests, setNoOfFriendRequests] = useState(0);
+	const location = useLocation();
 
 	useEffect(() => {
 		(async () => {
@@ -21,10 +22,6 @@ const Navbar = () => {
 				setNoOfFriendRequests(response.data.data.friendRequests.length);
 			}
 		})();
-	}, []);
-
-	useEffect(() => {
-
 	}, []);
 
 	return (
@@ -64,7 +61,7 @@ const Navbar = () => {
 					</div>
 					<div
 						className="items-center justify-center inline-flex text-white hover:text-red-500 h-full cursor-pointer relative"
-						onClick={() => navigate("/friend-requests")}
+						onClick={() => navigate("/friend-requests", {state: {from: location.pathname}})}
 					>
 						<FaUserFriends size={35} />
 						{noOfFriendRequests !== 0 && (
@@ -75,7 +72,7 @@ const Navbar = () => {
 					</div>
 					<div
 						className="items-center justify-center inline-flex text-white hover:text-red-500 h-full cursor-pointer"
-						onClick={() => navigate("/profile")}
+						onClick={() => navigate("/profile", {state: {from: location.pathname}})}
 					>
 						<FaCircleUser size={35} />
 					</div>

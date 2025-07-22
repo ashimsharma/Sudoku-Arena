@@ -1,4 +1,5 @@
 import { FaGithub, FaLinkedin } from "react-icons/fa";
+import SudokuMasterIcon from "../assets/sudoku-master-assets/sudoku-master-icon.png";
 
 const Footer = () => {
     return (
@@ -19,6 +20,10 @@ const Footer = () => {
                     className="hover:text-red-700"
                 >
                     <FaGithub size={24} />
+                </a>
+                <a href="https://sudokumaster.ashimsharma.com" className="hover:text-red-700 w-10 h-10" target="_blank"
+                    rel="noopener noreferrer">
+                    <img src={SudokuMasterIcon} alt="Sudoku Master" />
                 </a>
             </div>
             <p className="mt-2">&copy; 2025 Sudoku Arena. All rights reserved.</p>

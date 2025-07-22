@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { setUser } from "../redux/userSlice";
 import { HiArrowLeft } from "react-icons/hi";
 import axios from "axios";
@@ -11,6 +11,7 @@ export default function Profile() {
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
 	const [profile, setProfile] = useState<any>();
+	const location = useLocation();
 
 	useEffect(() => {
 		(async () => {
@@ -43,7 +44,12 @@ export default function Profile() {
 	}, []);
 
 	const back = () => {
-		navigate("/");
+		if(location?.state?.from){
+			navigate(location.state.from)
+		}
+		else{
+			navigate("/")
+		}
 	};
 
 	return loading ? (

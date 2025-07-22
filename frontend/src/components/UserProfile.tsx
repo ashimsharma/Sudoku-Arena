@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { setUser } from "../redux/userSlice";
 import { HiArrowLeft } from "react-icons/hi";
 import axios from "axios";
@@ -22,6 +22,8 @@ export default function UserProfile() {
 	const [isFriend, setIsFriend] = useState();
 	const [isRejected, setIsRejected] = useState();
 	const [updateProfile, setUpdateProfile] = useState(false);
+	const location = useLocation();
+	console.log(location);
 
 	useEffect(() => {
 		(async () => {
@@ -48,7 +50,10 @@ export default function UserProfile() {
 
 			if (response) {
 				if (response.data.data.isSelf) {
-					navigate("/profile");
+					navigate("/profile", {
+						state: { from: location?.state?.from },
+					});
+					return;
 				}
 				setProfile(response.data.data.user);
 				setIsFriend(response.data.data.isFriend);
@@ -60,10 +65,15 @@ export default function UserProfile() {
 				navigate("/login");
 			}
 		})();
-	}, [updateProfile]);
+	}, [updateProfile, userId]);
 
 	const back = () => {
-		navigate("/");
+		console.log(location)
+		if (location?.state?.from) {
+			navigate(location.state.from);
+		} else {
+			navigate("/");
+		}
 	};
 
 	const addFriend = async () => {
@@ -89,16 +99,16 @@ export default function UserProfile() {
 	};
 
 	const rejectFriendRequest = async (e: any, requestId: string) => {
-        e.stopPropagation();
-        try {
-            setRejectButton("Rejecting...")
+		e.stopPropagation();
+		try {
+			setRejectButton("Rejecting...");
 			const response = await axios.post(
 				`${import.meta.env.VITE_API_URL}/user/reject-friend`,
 				{
-					requestId: requestId
+					requestId: requestId,
 				},
 				{
-					withCredentials: true
+					withCredentials: true,
 				}
 			);
 
@@ -106,22 +116,22 @@ export default function UserProfile() {
 				setRejectButton("Rejected");
 				setUpdateProfile(!updateProfile);
 			}
-        } catch (error) {
-            console.log(error);
-        }
-    }
+		} catch (error) {
+			console.log(error);
+		}
+	};
 
-    const acceptFriendRequest = async (e: any, requestId: string) => {
-        e.stopPropagation();
-        try {
-            setAcceptButton("Accepting...")
+	const acceptFriendRequest = async (e: any, requestId: string) => {
+		e.stopPropagation();
+		try {
+			setAcceptButton("Accepting...");
 			const response = await axios.post(
 				`${import.meta.env.VITE_API_URL}/user/accept-friend`,
 				{
-					requestId: requestId
+					requestId: requestId,
 				},
 				{
-					withCredentials: true
+					withCredentials: true,
 				}
 			);
 
@@ -129,22 +139,22 @@ export default function UserProfile() {
 				setAcceptButton("Accepted");
 				setUpdateProfile(!updateProfile);
 			}
-        } catch (error) {
-            console.log(error);
-        }
-    }
+		} catch (error) {
+			console.log(error);
+		}
+	};
 
-    const removeFriend = async (e: any, requestId: string) => {
-        e.stopPropagation();
-        try {
-            setRemoveButton("Removing...")
+	const removeFriend = async (e: any, requestId: string) => {
+		e.stopPropagation();
+		try {
+			setRemoveButton("Removing...");
 			const response = await axios.post(
 				`${import.meta.env.VITE_API_URL}/user/remove-friend`,
 				{
-					requestId: requestId
+					requestId: requestId,
 				},
 				{
-					withCredentials: true
+					withCredentials: true,
 				}
 			);
 
@@ -152,10 +162,10 @@ export default function UserProfile() {
 				setRemoveButton("Removed");
 				setUpdateProfile(!updateProfile);
 			}
-        } catch (error) {
-            console.log(error);
-        }
-    }
+		} catch (error) {
+			console.log(error);
+		}
+	};
 
 	return loading ? (
 		<p className="text-white">Loading...</p>
@@ -201,7 +211,9 @@ export default function UserProfile() {
 					</div>
 					<div className="">
 						<p className="text-sm text-gray-400">Friends</p>
-						<p className="text-xl font-bold">{profile.totalFriends}</p>
+						<p className="text-xl font-bold">
+							{profile.totalFriends}
+						</p>
 					</div>
 				</div>
 
@@ -225,7 +237,7 @@ export default function UserProfile() {
 						</p>
 					</div>
 				</div>
-				{(!friendRequest) && (
+				{!friendRequest && (
 					<button
 						className="text-center flex justify-center items-center gap-2 bg-red-500 w-fit px-3 py-1 rounded-lg m-auto cursor-pointer hover:bg-red-600"
 						onClick={addFriend}
@@ -234,31 +246,33 @@ export default function UserProfile() {
 					</button>
 				)}
 				<div className="flex">
-					{(friendRequest && !isFriend && !hasRequested) && (
+					{friendRequest && !isFriend && !hasRequested && (
 						<button
 							className="text-center flex justify-center items-center gap-2 bg-green-500 w-fit px-3 py-1 rounded-lg m-auto cursor-pointer hover:bg-green-600"
-							onClick={(e) => acceptFriendRequest(e, friendRequest?.id)}
+							onClick={(e) =>
+								acceptFriendRequest(e, friendRequest?.id)
+							}
 						>
 							{acceptButton}
 						</button>
 					)}
-					{(friendRequest && !isFriend && !hasRequested) && (
+					{friendRequest && !isFriend && !hasRequested && (
 						<button
 							className="text-center flex justify-center items-center gap-2 bg-red-500 w-fit px-3 py-1 rounded-lg m-auto cursor-pointer hover:bg-red-600"
-							onClick={(e) => rejectFriendRequest(e, friendRequest?.id)}
+							onClick={(e) =>
+								rejectFriendRequest(e, friendRequest?.id)
+							}
 						>
 							{rejectButton}
 						</button>
 					)}
 				</div>
-				{(friendRequest && hasRequested && !isFriend) && (
-					<button
-						className="text-center flex justify-center items-center gap-2 bg-red-500 w-fit px-3 py-1 rounded-lg m-auto"
-					>
+				{friendRequest && hasRequested && !isFriend && (
+					<button className="text-center flex justify-center items-center gap-2 bg-red-500 w-fit px-3 py-1 rounded-lg m-auto">
 						Requested
 					</button>
 				)}
-				{(isFriend) && (
+				{isFriend && (
 					<button
 						className="text-center flex justify-center items-center gap-2 bg-red-500 w-fit px-3 py-1 rounded-lg m-auto hover:bg-red-600"
 						onClick={(e) => removeFriend(e, friendRequest?.id)}

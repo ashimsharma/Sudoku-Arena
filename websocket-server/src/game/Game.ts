@@ -30,6 +30,7 @@ import {
 	GAME_ALREADY_STARTED,
 	GAME_NOT_STARTED,
 } from "../messages/messages";
+import { gameManager } from "./GameManager";
 
 type Options = {
 	difficulty: Difficulty;
@@ -140,7 +141,7 @@ export class Game {
 			const createdGame = await prisma.game.create({
 				data: {
 					options: this.options,
-					status: GameStatus.ACTIVE,
+					status: GameStatus.MAKING,
 				},
 			});
 
@@ -171,6 +172,17 @@ export class Game {
 					userId: this.joiner?.id as string,
 				},
 			});
+
+			await prisma.game.update(
+				{
+					where: {
+						id: this.gameId
+					},
+					data: {
+						status: GameStatus.ACTIVE
+					}
+				}
+			);
 
 			this.creator?.socket.send(
 				JSON.stringify({
@@ -325,7 +337,7 @@ export class Game {
 		}
 
 		if (this.gameStarted) {
-			this.startTime = Date.now();
+			this.startTime = Date.now() + 7000;
 
 			this.creator?.socket.send(
 				JSON.stringify({
@@ -401,7 +413,19 @@ export class Game {
 				return;
 			}
 
-			if (this.gameEnded) {
+			const gameStatus = await prisma.game.findFirst(
+				{
+					where: {
+						id: this.gameId
+					},
+					select: {
+						status: true
+					}
+				}
+			)
+
+			if (gameStatus?.status === GameStatus.COMPLETED) {
+				this.gameEnded = true;
 				user?.socket.send(
 					JSON.stringify({
 						type: GAME_ALREADY_ENDED,
@@ -767,6 +791,8 @@ export class Game {
 					},
 				},
 			});
+
+			gameManager.remove((this?.gameId as string));
 		} catch (error) {
 			console.log(error);
 		}
@@ -964,6 +990,8 @@ export class Game {
 					},
 				});
 			}
+
+			gameManager.remove((this?.gameId as string))
 		} catch (error) {
 			console.log(error);
 		}
@@ -996,8 +1024,20 @@ export class Game {
 		}
 	}
 
-	fetchGameRoomData(socket: WebSocket) {
-		if(this.gameEnded){
+	async fetchGameRoomData(socket: WebSocket) {
+		const gameStatus = await prisma.game.findFirst(
+			{
+				where: {
+					id: this.gameId
+				},
+				select: {
+					status: true
+				}
+			}
+		);
+
+		if(gameStatus?.status === GameStatus.COMPLETED){
+			this.gameEnded = true;
 			socket.send(
 				JSON.stringify(
 					{
@@ -1008,7 +1048,8 @@ export class Game {
 			return;
 		}
 
-		if(this.gameStarted){
+		if(gameStatus?.status === GameStatus.ACTIVE){
+			this.gameStarted = true;
 			socket.send(
 				JSON.stringify(
 					{
@@ -1060,8 +1101,20 @@ export class Game {
 		}
 	}
 
-	fetchGameBoardScreenData(socket: WebSocket) {
-		if(this.gameEnded){
+	async fetchGameBoardScreenData(socket: WebSocket) {
+		const gameStatus = await prisma.game.findFirst(
+			{
+				where: {
+					id: this.gameId
+				},
+				select: {
+					status: true
+				}
+			}
+		);
+
+		if(gameStatus?.status === GameStatus.COMPLETED){
+			this.gameEnded = true;
 			socket.send(
 				JSON.stringify(
 					{
@@ -1072,7 +1125,8 @@ export class Game {
 			return;
 		}
 
-		if(!this.gameStarted){
+		if(!(gameStatus?.status === GameStatus.ACTIVE)){
+			this.gameStarted = false;
 			socket.send(
 				JSON.stringify(
 					{
