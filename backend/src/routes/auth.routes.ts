@@ -6,10 +6,10 @@ import verifyJWT from "../middlewares/auth.middleware";
 const authRouter = Router();
 
 authRouter.route("/github").get(githubLogin);
-authRouter.route("/github/callback").get(passport.authenticate("github", { session: false, failureRedirect: process.env.FAILURE_REDIRECT }), githubLoginCallback);
+authRouter.route("/github/callback").get(passport.authenticate("github", { session: false, failureRedirect: process.env.GITHUB_FAILURE_REDIRECT }), githubLoginCallback);
 
 authRouter.route("/google").get(googleLogin);
-authRouter.route("/google/callback").get(passport.authenticate("google", { session: false, failureRedirect: process.env.FAILURE_REDIRECT }), googleLoginCallback);
+authRouter.route("/google/callback").get(passport.authenticate("google", { session: false, failureRedirect: process.env.GOOGLE_FAILURE_REDIRECT }), googleLoginCallback);
 
 authRouter.route("/check-auth").get(verifyJWT, isAuthenticated);
 

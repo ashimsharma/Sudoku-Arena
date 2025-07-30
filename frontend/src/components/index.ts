@@ -27,4 +27,5 @@ import ActiveGameCard from "./ActiveGameCard";
 import Invites from "./Invites";
 import FriendListModal from "./FriendListModal";
 import LoaderModal from "./LoaderModal";
-export {Login, Home, Navbar, Footer, Leaderboard, Game, CreateRoomModal, GameRoom, JoinRoomModal, GameBoardScreen, Keypad, Popup, GameBoard, ButtonPallet, TimerPallet, ProgressBar, ResultModal, Profile, UserGames, GameInfo, GameInfoBoard, UserProfile, FriendRequests, Friends, ReactionBar, ActiveGameCard, Invites, FriendListModal, LoaderModal};
+import ErrorMessage from "./ErrorMessage";
+export {Login, Home, Navbar, Footer, Leaderboard, Game, CreateRoomModal, GameRoom, JoinRoomModal, GameBoardScreen, Keypad, Popup, GameBoard, ButtonPallet, TimerPallet, ProgressBar, ResultModal, Profile, UserGames, GameInfo, GameInfoBoard, UserProfile, FriendRequests, Friends, ReactionBar, ActiveGameCard, Invites, FriendListModal, LoaderModal, ErrorMessage};

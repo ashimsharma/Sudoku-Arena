@@ -17,9 +17,8 @@ interface User {
 
 function githubLoginCallback(req: Request, res: Response, next: NextFunction) {
 	if (!req.user) {
-		res.status(401).json({
-			error: "Authentication failed",
-		});
+		res.redirect(process.env.GITHUB_FAILURE_REDIRECT as string)
+		return;
 	}
 
 	const payload = { id: (req.user as User).id };
@@ -50,7 +49,8 @@ function googleLogin(req: Request, res: Response, next: NextFunction) {
 
 function googleLoginCallback(req: Request, res: Response, next: NextFunction) {
 	if (!req.user) {
-		res.redirect(process.env.FAILURE_REDIRECT as string);
+		res.redirect(process.env.GOOGLE_FAILURE_REDIRECT as string);
+		return;
 	}
 
 	const payload = { id: (req.user as User).id };

@@ -10,8 +10,6 @@ import GameInfoCard from "./GameInfoCard";
 export default function GameInfo() {
 	const [searchParams] = useSearchParams();
 	const gameId = searchParams.get("gameId");
-    console.log(searchParams);
-    console.log(gameId);
 	const [loading, setLoading] = useState(true);
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
