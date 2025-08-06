@@ -4,6 +4,8 @@ import { FiCopy } from "react-icons/fi";
 import { MdCheckCircle } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import PlayerJoinSound from "../assets/sounds/PlayerJoinSound.wav";
+
 import {
 	BOTH_USERS_GAME_INITIATED,
 	DATA_FETCHED,
@@ -136,6 +138,8 @@ const GameRoom = () => {
 				const avatarUrl = data.data.avatarUrl;
 				const id = data.data.joinerId;
 				dispatch(setOpponent({ opponent: { name, avatarUrl, id } }));
+				const opponentJoinedSound = new Audio(PlayerJoinSound);
+				opponentJoinedSound.play();
 				setOpponentJoined(true);
 				break;
 			case GAME_INITIATED:
