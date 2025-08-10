@@ -1,85 +1,151 @@
 import { FaCircleUser } from "react-icons/fa6";
+import { FaUserFriends, FaBars, FaTimes } from "react-icons/fa";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { FaUserFriends } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { motion } from "framer-motion";
 
 const Navbar = () => {
-	const navigate = useNavigate();
-	const [noOfFriendRequests, setNoOfFriendRequests] = useState(0);
-	const location = useLocation();
+  const navigate = useNavigate();
+  const [noOfFriendRequests, setNoOfFriendRequests] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
 
-	useEffect(() => {
-		(async () => {
-			const response = await axios.get(
-				`${import.meta.env.VITE_API_URL}/user/get-friend-requests`,
-				{
-					withCredentials: true,
-				}
-			);
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/user/get-friend-requests`,
+          { withCredentials: true }
+        );
+        if (response) {
+          setNoOfFriendRequests(response.data.data.friendRequests.length);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, []);
 
-			if (response) {
-				setNoOfFriendRequests(response.data.data.friendRequests.length);
-			}
-		})();
-	}, []);
+  const navLinks = [
+    { name: "Home", path: "/" },
+    { name: "Leaderboard", path: "/leaderboard" },
+  ];
 
-	return (
-		<nav className="bg-gray-900 py-6 shadow-lg">
-			<div className="container mx-auto flex justify-between items-center px-6">
-				<h1
-					className="text-5xl font-bold tracking-wide text-red-500"
-					style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-				>
-					SUDOKU <span className="text-white">ARENA</span>
-				</h1>
-				<div className="space-x-4 text-lg flex">
-					<div className="flex items-center">
-						<NavLink
-							to="/"
-							className={({ isActive }) =>
-								`hover:text-red-500 ${
-									isActive ? "text-red-500" : "text-gray-300"
-								}`
-							}
-						>
-							Home
-						</NavLink>
-					</div>
+  return (
+    <nav className="bg-gray-900 bg-opacity-80 backdrop-blur-md py-4 shadow-lg w-full z-50">
+      <div className="container mx-auto flex justify-between items-center px-6">
+        {/* Logo */}
+        <motion.h1
+          className="text-4xl font-bold tracking-wide text-red-500 cursor-pointer"
+          style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+          onClick={() => navigate("/")}
+          whileHover={{ scale: 1.05 }}
+        >
+          SUDOKU <span className="text-white">ARENA</span>
+        </motion.h1>
 
-					<div className="flex items-center">
-						<NavLink
-							to="/leaderboard"
-							className={({ isActive }) =>
-								`hover:text-red-500 ${
-									isActive ? "text-red-500" : "text-gray-300"
-								}`
-							}
-						>
-							Leaderboard
-						</NavLink>
-					</div>
-					<div
-						className="items-center justify-center inline-flex text-white hover:text-red-500 h-full cursor-pointer relative"
-						onClick={() => navigate("/friend-requests", {state: {from: location.pathname}})}
-					>
-						<FaUserFriends size={35} />
-						{noOfFriendRequests !== 0 && (
-							<div className="absolute -top-1 -right-3 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none">
-								{noOfFriendRequests}
-							</div>
-						)}
-					</div>
-					<div
-						className="items-center justify-center inline-flex text-white hover:text-red-500 h-full cursor-pointer"
-						onClick={() => navigate("/profile", {state: {from: location.pathname}})}
-					>
-						<FaCircleUser size={35} />
-					</div>
-				</div>
-			</div>
-		</nav>
-	);
+        {/* Desktop Links */}
+        <div className="md:hidden flex space-x-6 text-lg items-center">
+          {navLinks.map((link) => (
+            <NavLink
+              key={link.name}
+              to={link.path}
+              className={({ isActive }) =>
+                `transition-colors duration-300 hover:text-red-500 ${
+                  isActive ? "text-red-500" : "text-gray-300"
+                }`
+              }
+            >
+              {link.name}
+            </NavLink>
+          ))}
+
+          {/* Friend Requests */}
+          <motion.div
+            className="relative text-white hover:text-red-500 cursor-pointer"
+            onClick={() =>
+              navigate("/friend-requests", { state: { from: location.pathname } })
+            }
+            whileHover={{ scale: 1.1 }}
+          >
+            <FaUserFriends size={28} />
+            {noOfFriendRequests > 0 && (
+              <div className="absolute -top-1 -right-3 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none">
+                {noOfFriendRequests}
+              </div>
+            )}
+          </motion.div>
+
+          {/* Profile */}
+          <motion.div
+            className="text-white hover:text-red-500 cursor-pointer"
+            onClick={() => navigate("/profile", { state: { from: location.pathname } })}
+            whileHover={{ scale: 1.1 }}
+          >
+            <FaCircleUser size={28} />
+          </motion.div>
+        </div>
+
+        {/* Mobile Menu Toggle */}
+        <div className="hidden md:block text-white cursor-pointer" onClick={() => setMenuOpen(!menuOpen)}>
+          {menuOpen ? <FaTimes size={28} /> : <FaBars size={28} />}
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {menuOpen && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          className="hidden md:flex flex-col items-center bg-gray-900 pb-4 space-y-4"
+        >
+          {navLinks.map((link) => (
+            <NavLink
+              key={link.name}
+              to={link.path}
+              onClick={() => setMenuOpen(false)}
+              className={({ isActive }) =>
+                `transition-colors duration-300 hover:text-red-500 ${
+                  isActive ? "text-red-500" : "text-gray-300"
+                }`
+              }
+            >
+              {link.name}
+            </NavLink>
+          ))}
+
+          {/* Friend Requests */}
+          <div
+            className="relative text-white hover:text-red-500 cursor-pointer"
+            onClick={() => {
+              navigate("/friend-requests", { state: { from: location.pathname } });
+              setMenuOpen(false);
+            }}
+          >
+            <FaUserFriends size={28} />
+            {noOfFriendRequests > 0 && (
+              <div className="absolute -top-1 -right-3 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none">
+                {noOfFriendRequests}
+              </div>
+            )}
+          </div>
+
+          {/* Profile */}
+          <div
+            className="text-white hover:text-red-500 cursor-pointer"
+            onClick={() => {
+              navigate("/profile", { state: { from: location.pathname } });
+              setMenuOpen(false);
+            }}
+          >
+            <FaCircleUser size={28} />
+          </div>
+        </motion.div>
+      )}
+    </nav>
+  );
 };
 
 export default Navbar;

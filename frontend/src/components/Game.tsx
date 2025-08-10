@@ -1,231 +1,236 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { HiArrowLeft } from "react-icons/hi";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CreateRoomModal, JoinRoomModal } from "./";
+import { CreateRoomModal, JoinRoomModal, Loader } from "./";
 import { closeSocket, connectSocket, getSocket } from "../config/socket.config";
-import { connect, useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setGameId, setMe, setMeType, setOpponent } from "../redux/gameSlice";
 import {
-	CREATE_ROOM,
-	JOIN_ROOM,
-	ROOM_CREATED,
-	ROOM_JOINED,
+  CREATE_ROOM,
+  JOIN_ROOM,
+  ROOM_CREATED,
+  ROOM_JOINED,
 } from "../messages/messages";
 import { setUser } from "../redux/userSlice";
 import checkAuth from "../utils/authentication";
-
-interface User {
-	id: string;
-	name: string;
-	avatarUrl: string;
-	email: string;
-}
+import { motion } from "framer-motion";
 
 const Game = () => {
-	const [createRoomModalOpened, setCreateRoomModalOpened] = useState(false);
-	const [joinRoomModalOpened, setJoinRoomModalOpened] = useState(false);
-	const [loading, setLoading] = useState(true);
-	let me = useSelector((state: any) => state.user).user;
+  const [createRoomModalOpened, setCreateRoomModalOpened] = useState(false);
+  const [joinRoomModalOpened, setJoinRoomModalOpened] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const me = useSelector((state: any) => state.user).user;
 
-	const navigate = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
 
-	const location = useLocation();
-	const dispatch = useDispatch();
+  const handleMessages = (event: MessageEvent) => {
+    const data = JSON.parse(event.data);
+    const type = data.type;
 
-	const handleMessages = (event: MessageEvent) => {
-		const data = JSON.parse(event.data);
-		const type = data.type;
+    switch (type) {
+      case ROOM_CREATED: {
+        const roomId = data.roomId;
+        dispatch(setGameId({ gameId: roomId }));
+        localStorage.setItem("activeGameId", roomId);
+        dispatch(setMeType({ meType: "creator" }));
+        navigate("/game/game-room", { state: { from: "/game" } });
+        break;
+      }
+      case ROOM_JOINED: {
+        const { creatorName: name, avatarUrl, creatorId: id, roomId } = data.data;
+        dispatch(setOpponent({ opponent: { name, avatarUrl, id } }));
+        dispatch(setGameId({ gameId: roomId }));
+        localStorage.setItem("activeGameId", roomId);
+        dispatch(setMeType({ meType: "joiner" }));
+        navigate("/game/game-room", { state: { from: "/game" } });
+        break;
+      }
+    }
+  };
 
-		switch (type) {
-			case ROOM_CREATED:
-				const roomId = data.roomId;
-				dispatch(setGameId({ gameId: roomId }));
+  useEffect(() => {
+    if (localStorage.getItem("activeGameId")) {
+      navigate("/game/game-room");
+    }
 
-				localStorage.setItem("activeGameId", roomId);
+    (async () => {
+      const response = await checkAuth();
 
-				dispatch(setMeType({ meType: "creator" }));
-				navigate("/game/game-room", { state: { from: "/game" } });
-				break;
-			case ROOM_JOINED:
-				const name = data.data.creatorName;
-				const avatarUrl = data.data.avatarUrl;
-				const id = data.data.creatorId;
+      if (response) {
+        dispatch(setUser({ user: response.data.data.user }));
+        dispatch(setMe({ me: response.data.data.user }));
+        setLoading(false);
+      } else {
+        closeSocket();
+        navigate("/login");
+      }
+    })();
+  }, []);
 
-				dispatch(setOpponent({ opponent: { name, avatarUrl, id } }));
-				const joinerRoomId = data.data.roomId;
-				dispatch(setGameId({ gameId: joinerRoomId }));
+  useEffect(() => {
+    if (localStorage.getItem("activeGameId")) {
+      navigate("/game/game-room");
+      return;
+    }
 
-				localStorage.setItem("activeGameId", joinerRoomId);
+    (async () => {
+      let socket: WebSocket | null;
 
-				dispatch(setMeType({ meType: "joiner" }));
-				navigate("/game/game-room", { state: { from: "/game" } });
-				break;
-		}
-	};
+      try {
+        socket = getSocket();
 
-	useEffect(() => {
-		if(localStorage.getItem("activeGameId")){
-			navigate("/game/game-room");
-		}
-		(async () => {
-			const response = await checkAuth();
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+          socket = await connectSocket();
+        }
 
-			if (response) {
-				dispatch(setUser({ user: response.data.data.user }));
-				dispatch(setMe({ me: response.data.data.user }));
-				setLoading(false);
-			} else {
-				closeSocket();
-				navigate("/login");
-			}
-		})();
-	}, []);
+        socket?.addEventListener("message", handleMessages);
+      } catch (error) {
+        console.log(error);
+      }
 
-	useEffect(() => {
-		if (localStorage.getItem("activeGameId")) {
-			navigate("/game/game-room")
-			return;
-		}
+      return () => {
+        socket?.removeEventListener("message", handleMessages);
+      };
+    })();
+  }, []);
 
-		(async () => {
-			let socket: WebSocket | null;
+  const back = () => {
+    closeSocket();
+    navigate("/");
+  };
 
-			try {
-				socket = getSocket();
+  const openCreateRoomModal = () => setCreateRoomModalOpened(true);
+  const openJoinRoomModal = () => setJoinRoomModalOpened(true);
+  const onClose = () => {
+    if (createRoomModalOpened) setCreateRoomModalOpened(false);
+    if (joinRoomModalOpened) setJoinRoomModalOpened(false);
+  };
 
-				if (!socket || socket.readyState !== WebSocket.OPEN) {
-					socket = await connectSocket();
-				}
+  const onCreate = async ({
+    difficulty,
+    gameTime,
+  }: {
+    difficulty: string;
+    gameTime: number;
+  }) => {
+    setCreateRoomModalOpened(false);
 
-				socket?.addEventListener("message", handleMessages);
-			} catch (error) {
-				console.log(error);
-			}
+    let socket = getSocket();
 
-			return () => {
-				socket?.removeEventListener("message", handleMessages);
-			};
-		})();
-	}, []);
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      socket = await connectSocket();
+    }
 
-	const back = () => {
-		closeSocket();
-		navigate("/");
-	};
+    socket?.send(
+      JSON.stringify({
+        type: CREATE_ROOM,
+        params: {
+          difficulty,
+          gameTime,
+        },
+      })
+    );
+  };
 
-	const openCreateRoomModal = () => {
-		setCreateRoomModalOpened(true);
-	};
+  const onJoin = async (roomId: string) => {
+    setJoinRoomModalOpened(false);
+    let socket = getSocket();
 
-	const openJoinRoomModal = () => {
-		setJoinRoomModalOpened(true);
-	};
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      socket = await connectSocket();
+    }
 
-	const onClose = () => {
-		createRoomModalOpened && setCreateRoomModalOpened(false);
-		joinRoomModalOpened && setJoinRoomModalOpened(false);
-	};
+    socket?.send(
+      JSON.stringify({
+        type: JOIN_ROOM,
+        params: {
+          roomId,
+        },
+      })
+    );
+  };
 
-	const onCreate = async ({
-		difficulty,
-		gameTime,
-	}: {
-		difficulty: string;
-		gameTime: number;
-	}) => {
-		setCreateRoomModalOpened(false);
+  if (loading) return <Loader />;
 
-		let socket = getSocket();
+  return (
+    <motion.div
+      className="min-h-screen bg-gray-900 p-4 flex flex-col items-center"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Back Button */}
+      <div className="w-full max-w-4xl flex justify-start mb-6">
+        <motion.button
+          className="flex items-center text-white hover:text-gray-400 transition-colors duration-300"
+          onClick={back}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          aria-label="Go back"
+        >
+          <HiArrowLeft className="text-2xl mr-2" />
+          <span className="text-lg font-medium">Back</span>
+        </motion.button>
+      </div>
 
-		if (!socket || socket.readyState !== WebSocket.OPEN) {
-			socket = await connectSocket();
-		}
+      {/* User Info */}
+      <motion.div
+        className="flex flex-col md:flex-row items-center gap-6 bg-gray-800 p-6 rounded-xl shadow-lg max-w-4xl w-full"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <img
+          src={me.avatarUrl}
+          alt={`${me.name} Avatar`}
+          className="h-28 w-28 rounded-full object-cover"
+        />
+        <p className="text-3xl text-white font-semibold text-center md:text-left">
+          {me.name}
+        </p>
+      </motion.div>
 
-		socket?.send(
-			JSON.stringify({
-				type: CREATE_ROOM,
-				params: {
-					difficulty,
-					gameTime,
-				},
-			})
-		);
-	};
+      {/* Action Panel */}
+      <motion.div
+        className="bg-gray-800 bg-opacity-60 backdrop-blur-md p-8 rounded-3xl shadow-lg mt-8 max-w-sm w-full text-white"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+      >
+        <h2 className="text-3xl font-bold text-red-500 text-center mb-2">
+          SUDOKU ARENA
+        </h2>
+        <p className="text-gray-300 text-center mb-6">Create your own room!</p>
 
-	const onJoin = async (roomId: string) => {
-		setJoinRoomModalOpened(false);
-		let socket = getSocket();
+        <div className="flex flex-col gap-4">
+          <motion.button
+            className="bg-red-500 hover:bg-red-600 transition-colors duration-300 font-semibold py-3 rounded-lg shadow-md"
+            onClick={openCreateRoomModal}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Create Room
+          </motion.button>
+          <motion.button
+            className="bg-gray-700 hover:bg-gray-600 transition-colors duration-300 font-semibold py-3 rounded-lg shadow-md"
+            onClick={openJoinRoomModal}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Join Room
+          </motion.button>
+        </div>
+      </motion.div>
 
-		if (!socket || socket.readyState !== WebSocket.OPEN) {
-			socket = await connectSocket();
-		}
-
-		socket?.send(
-			JSON.stringify({
-				type: JOIN_ROOM,
-				params: {
-					roomId,
-				},
-			})
-		);
-	};
-
-	return loading ? (
-		<div className="text-white">Loading...</div>
-	) : (
-		<div className="min-h-screen bg-gray-900 p-4">
-			<div className="flex mb-4">
-				<button
-					className="flex items-center text-white hover:text-gray-400 transition-all duration-300"
-					onClick={back}
-				>
-					<HiArrowLeft className="text-2xl mr-2" />
-					<span className="text-lg font-medium">Back</span>
-				</button>
-			</div>
-
-			<div className="flex flex-col items-center gap-4">
-				<div className="flex w-fit bg-gray-800 p-4 text-white rounded-lg justify-center items-center gap-4">
-					<img
-						src={me.avatarUrl}
-						alt="User Avatar"
-						className="h-28 w-28 rounded-full"
-					/>
-					<p className="text-center text-2xl">{me.name}</p>
-				</div>
-
-				<div className="bg-gray-800 bg-opacity-50 backdrop-blur-md p-6 rounded-2xl shadow-lg text-white w-full max-w-sm">
-					<h2 className="text-3xl font-bold text-red-500 text-center">
-						SUDOKU ARENA
-					</h2>
-					<p className="text-gray-300 text-center mt-2">
-						Create your own room!
-					</p>
-
-					<div className="mt-6 flex flex-col gap-4">
-						<button
-							className="bg-red-500 hover:bg-red-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg"
-							onClick={openCreateRoomModal}
-						>
-							Create Room
-						</button>
-						<button
-							className="bg-gray-700 hover:bg-gray-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg"
-							onClick={openJoinRoomModal}
-						>
-							Join Room
-						</button>
-					</div>
-				</div>
-			</div>
-			{createRoomModalOpened && (
-				<CreateRoomModal onClose={onClose} onCreate={onCreate} />
-			)}
-			{joinRoomModalOpened && (
-				<JoinRoomModal onClose={onClose} onJoin={onJoin} />
-			)}
-		</div>
-	);
+      {/* Modals */}
+      {createRoomModalOpened && (
+        <CreateRoomModal onClose={onClose} onCreate={onCreate} />
+      )}
+      {joinRoomModalOpened && <JoinRoomModal onClose={onClose} onJoin={onJoin} />}
+    </motion.div>
+  );
 };
 
 export default Game;
