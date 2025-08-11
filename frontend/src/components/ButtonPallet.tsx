@@ -3,6 +3,8 @@ import { getSocket } from "../config/socket.config";
 import { useContext } from "react";
 import { GameContext } from "./GameBoardScreen";
 import { CLEAR_CELL } from "../messages/messages";
+import { motion } from "framer-motion";
+import { FaEraser } from "react-icons/fa6";
 
 export default function ButtonPallet() {
 	const currentGameState = useSelector(
@@ -47,12 +49,14 @@ export default function ButtonPallet() {
 
 	return (
 		<div>
-			<button
-				className="bg-red-600 px-4 py-2 flex items-center justify-center rounded-md hover:bg-red-800 text-white text-center w-full"
+			<motion.button
+				className="bg-red-500 hover:bg-red-600 px-4 py-2 flex items-center justify-center rounded-md text-white text-center w-full"
 				onClick={clearCell}
+				whileTap={{ scale: 0.95 }}
+				transition={{ type: "spring", stiffness: 300, damping: 20 }}
 			>
-				Erase
-			</button>
+				<FaEraser size={25}/>
+			</motion.button>
 		</div>
 	);
 }

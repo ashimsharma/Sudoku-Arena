@@ -101,7 +101,7 @@ const GameBoard = () => {
 			</div>
 			{game?.map((cell: CurrentGameStateData, i: number) => {
 				const baseClass =
-					"border border-black text-center text-black text-2xl p-2 flex justify-center items-center";
+					"border border-black text-center text-black text-2xl p-2 flex justify-center items-center transition-colors duration-300 ease-in-out cursor-pointer select-none";
 				const cellClasses = [
 					baseClass,
 					isRowSelected(i) ||
@@ -121,7 +121,7 @@ const GameBoard = () => {
 					(cell.canBeTyped && !cell.isOnCorrectPosition) && "text-red-600",
 					(!initialGameState[i].digit && cell.isOnCorrectPosition) && "text-green-600",
 					(cell.digit !== null && cell.digit === game[selectedCellIndex.current]?.digit) && 'bg-gray-400',
-					(cell.digit !== null && cell.digit === game[selectedCellIndex.current]?.digit && !game[selectedCellIndex.current]?.isOnCorrectPosition && wrongCellReason(i)) && 'bg-red-200'
+					(cell.digit !== null && cell.digit === game[selectedCellIndex.current]?.digit && !game[selectedCellIndex.current]?.isOnCorrectPosition && wrongCellReason(i)) && 'bg-red-200 animate-shake'
 				].join(" ");
 
 				return (

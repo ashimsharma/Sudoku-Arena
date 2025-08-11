@@ -600,32 +600,45 @@ export default function GameBoardScreen() {
 				opponentReaction,
 			}}
 		>
-			<div className="min-h-screen bg-gray-800 text-white">
+			<div className="min-h-screen backdrop-blur-md text-white font-sans">
 				{gameEnded && <ResultModal />}
-				<div className="py-6 bg-gray-900 shadow-lg">
-					<h1 className="p-4 text-center text-3xl font-bold text-red-500">
+
+				{/* Header */}
+				<div className="py-6 bg-gray-900/70 backdrop-blur-md shadow-lg border-b border-red-500/30">
+					<h1 className="p-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600 tracking-wider drop-shadow-lg">
 						{type === "creator" ? me?.name : opponent?.name}'s GAME
 						ROOM
 					</h1>
 				</div>
-				<div className="grid grid-cols-2 gap-x-10 gap-y-3 auto-rows-auto my-2 w-4/5 mx-auto h-3/5">
-					<div className="row-span-2">
+
+				{/* Main Grid */}
+				<main className="grid grid-cols-2 gap-x-10 gap-y-6 auto-rows-auto my-6 w-4/5 mx-auto h-full">
+					{/* TimerPallet container */}
+					<div className="row-span-2 bg-gray-800/50 rounded-2xl p-4 shadow-inner border border-gray-700/50">
 						<TimerPallet />
 					</div>
-					<div className="row-start-3 row-span-8">
+
+					{/* GameBoard container */}
+					<div className="row-start-3 row-span-8 bg-gray-800/50 rounded-2xl p-4 shadow-inner border border-gray-700/50">
 						<GameBoard />
 					</div>
-					<div className="row-start-11 row-span-2">
+
+					{/* ButtonPallet container */}
+					<div className="row-start-11 row-span-2 bg-gray-800/50 rounded-2xl p-4 shadow-inner border border-gray-700/50">
 						<ButtonPallet />
 					</div>
-					<div className="row-span-6 flex justify-center items-center flex-col gap-4">
+
+					{/* ReactionBar + ProgressBar container */}
+					<div className="row-span-6 flex justify-center items-center flex-col gap-6 bg-gray-800/50 rounded-2xl p-6 shadow-inner border border-gray-700/50">
 						<ReactionBar />
 						<ProgressBar />
 					</div>
-					<div className="col-start-2 row-start-7 row-span-6">
+
+					{/* Keypad container */}
+					<div className="col-start-2 row-start-7 row-span-6 bg-gray-800/50 rounded-2xl p-4 shadow-inner border border-gray-700/50">
 						<Keypad />
 					</div>
-				</div>
+				</main>
 			</div>
 		</GameContext.Provider>
 	);

@@ -31,8 +31,7 @@ import {
 } from "../redux/gameSlice";
 import { setUser } from "../redux/userSlice";
 import checkAuth from "../utils/authentication";
-import axios from "axios";
-import {FriendListModal, LoaderModal} from "./";
+import { FriendListModal, Loader, LoaderModal } from "./";
 
 const GameRoom = () => {
 	const [loading, setLoading] = useState(true);
@@ -229,126 +228,133 @@ const GameRoom = () => {
 	};
 
 	return loading ? (
-		<div className="text-white">Loading...</div>
+		<Loader />
 	) : (
-		<div className="bg-gray-800 text-white">
+		<div className="min-h-screen text-white">
+			{/* Loader / Invite Modal */}
 			{gameInitiated && <LoaderModal text="Waiting for opponent..." />}
-			{openFriendList && <FriendListModal setOpenFriendList={setOpenFriendList} user={me} gameId={gameId}/>}
-			<div className="py-6 bg-gray-900 shadow-lg">
-				<h1 className="p-4 text-center text-3xl font-bold text-red-500">
+			{openFriendList && (
+				<FriendListModal
+					setOpenFriendList={setOpenFriendList}
+					user={me}
+					gameId={gameId}
+				/>
+			)}
+
+			{/* Header */}
+			<div className="py-6 bg-gray-900/70 backdrop-blur-md shadow-lg border-b border-red-500/30">
+				<h1 className="p-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600 tracking-wider drop-shadow-lg">
 					{type === "creator" ? me?.name : opponent?.name}'s GAME ROOM
 				</h1>
 			</div>
-			<div className="mt-4">
-				<div className="bg-gray-900 p-4 rounded-2xl flex items-center space-x-2 shadow-md w-1/3 lg:w-3/5 md:w-4/5 mx-auto">
+
+			{/* Room ID + Copy */}
+			<div className="mt-6">
+				<div className="bg-gray-900/60 backdrop-blur-lg border border-gray-700/50 p-4 rounded-2xl flex items-center space-x-2 shadow-lg w-11/12 md:w-3/5 lg:w-2/5 mx-auto">
 					<input
 						type="text"
 						value={gameId}
 						readOnly
-						className="bg-gray-800 text-white px-4 py-2 rounded-xl w-full focus:outline-none cursor-default"
+						className="bg-transparent text-white px-4 py-2 rounded-xl w-full focus:outline-none cursor-default tracking-wider"
 					/>
 					{type === "creator" && (
 						<button
 							onClick={handleCopy}
-							className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-xl transition flex items-center"
+							className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white px-4 py-2 rounded-xl shadow-md transition-all duration-200 flex items-center gap-1 active:scale-95"
 						>
-							<FiCopy className="w-4 h-4 mr-1" />
+							{copied ? (
+								<MdCheckCircle className="w-5 h-5" />
+							) : (
+								<FiCopy className="w-5 h-5" />
+							)}
 							{copied ? "Copied!" : "Copy"}
 						</button>
 					)}
 				</div>
 				{type === "creator" && (
-					<p className="text-center p-1 text-gray-300">
-						*Use this RoomId to invite your friends
+					<p className="text-center p-2 text-gray-400 text-sm italic">
+						Share this Room ID with your friends to invite them
 					</p>
 				)}
 			</div>
 
-			<div className="bg-gray-900 grid grid-cols-5 w-1/2 m-4 mx-auto p-4 rounded-2xl lg:w-3/5 md:w-4/5">
-				<div className="col-span-2 flex flex-col justify-center gap-2 items-center bg-gray-800 p-4 rounded-2xl">
-					<img
-						src={me?.avatarUrl}
-						alt="User Avatar"
-						className="h-28 w-28 rounded-full"
-					/>
-					<p className="text-center text-2xl">{me?.name}</p>
-					<div className="h-6">
+			{/* Player Cards */}
+			<div className="bg-gray-900/60 backdrop-blur-xl grid grid-cols-5 w-11/12 md:w-4/5 lg:w-1/2 my-8 mx-auto p-6 rounded-2xl border border-gray-700/50 shadow-lg">
+				{/* Me */}
+				<div className="col-span-2 flex flex-col items-center gap-3 bg-gray-800/50 rounded-2xl p-4 shadow-md">
+					<div className="relative">
+						<img
+							src={me?.avatarUrl}
+							alt="User Avatar"
+							className="h-28 w-28 rounded-full border-4 border-red-500 shadow-lg"
+						/>
 						{gameInitiated && (
-							<div className="text-white bg-green-500 flex items-center px-2 py-1 rounded-full gap-1">
-								<div className="bg-white rounded-full w-fit inline-block">
-									<MdCheckCircle
-										style={{
-											color: "green",
-											fontSize: "24px",
-										}}
-									/>
-								</div>{" "}
-								Ready
-							</div>
+							<span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md flex items-center gap-1">
+								<MdCheckCircle /> Ready
+							</span>
 						)}
 					</div>
+					<p className="text-xl font-bold text-center">{me?.name}</p>
 				</div>
-				<div className="col-span-1 flex justify-center items-center text-2xl font-bold">
-					VS
+
+				{/* VS */}
+				<div className="col-span-1 flex flex-col justify-center items-center">
+					<div className="text-2xl font-extrabold text-gray-400">
+						VS
+					</div>
 				</div>
-				<div className="col-span-2 flex flex-col justify-center gap-2 items-center bg-gray-800 p-4 rounded-2xl">
+
+				{/* Opponent */}
+				<div className="col-span-2 flex flex-col items-center justify-center gap-3 bg-gray-800/50 rounded-2xl p-4 shadow-md">
 					{!opponent ? (
 						<>
-							<div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-							<p className="font-medium text-center">
-								Waiting for opponent
+							<div className="w-8 h-8 border-4 border-white/50 border-t-transparent rounded-full animate-spin"></div>
+							<p className="text-gray-400 flex items-center">
+								Waiting for opponent...
 							</p>
 						</>
 					) : (
 						<>
-							<img
-								src={opponent?.avatarUrl}
-								alt="User Avatar"
-								className="h-28 w-28 rounded-full"
-							/>
-							<p className="text-center text-2xl">
-								{opponent?.name}
-							</p>
-							<div className="h-6">
+							<div className="relative">
+								<img
+									src={opponent?.avatarUrl}
+									alt="User Avatar"
+									className="h-28 w-28 rounded-full border-4 border-blue-500 shadow-lg"
+								/>
 								{opponentGameInitiated && (
-									<div className="text-white bg-green-400 flex items-center px-2 py-1 rounded-full gap-1">
-										<div className="bg-white rounded-full w-fit inline-block">
-											<MdCheckCircle
-												style={{
-													color: "green",
-													fontSize: "24px",
-												}}
-											/>
-										</div>{" "}
-										Ready
-									</div>
+									<span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-green-400 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md flex items-center gap-1">
+										<MdCheckCircle /> Ready
+									</span>
 								)}
 							</div>
+							<p className="text-xl font-bold text-center">
+								{opponent?.name}
+							</p>
 						</>
 					)}
 				</div>
 			</div>
-			{opponent && me && (
-				<div className="text-center">
+
+			{/* Action Buttons */}
+			<div className="text-center pb-8">
+				{opponent && me && (
 					<button
-						className="bg-red-500 hover:bg-red-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg"
+						className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 px-6 py-3 rounded-lg text-lg font-bold text-white shadow-lg transition-transform transform hover:scale-105 active:scale-95"
 						onClick={initGame}
 					>
-						Start Game
+						🚀 Start Game
 					</button>
-				</div>
-			)}
+				)}
 
-			{me && !opponent && type === "creator" && (
-				<div className="text-center">
+				{me && !opponent && type === "creator" && (
 					<button
-						className="bg-blue-500 hover:bg-blue-600 transition-all duration-300 text-white font-semibold py-2 px-4 rounded-lg"
+						className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 px-6 py-3 rounded-lg text-lg font-bold text-white shadow-lg transition-transform transform hover:scale-105 active:scale-95"
 						onClick={() => setOpenFriendList(true)}
 					>
-						Invite Friend
+						📨 Invite Friend
 					</button>
-				</div>
-			)}
+				)}
+			</div>
 		</div>
 	);
 };
