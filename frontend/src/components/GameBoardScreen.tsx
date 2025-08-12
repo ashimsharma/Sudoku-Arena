@@ -53,6 +53,7 @@ import {
 } from "../redux/gameSlice";
 import { setUser } from "../redux/userSlice";
 import checkAuth from "../utils/authentication";
+import { div } from "framer-motion/client";
 
 type CurrentGameStateData = {
 	digit: number | null;
@@ -578,7 +579,9 @@ export default function GameBoardScreen() {
 	}, []);
 
 	return loading ? (
-		<LoaderModal text="Loading..." />
+		<div className="min-h-screen">
+			<LoaderModal text="Loading..." />
+		</div>
 	) : (
 		<GameContext.Provider
 			value={{

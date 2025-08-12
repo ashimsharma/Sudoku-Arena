@@ -5,7 +5,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import checkAuth from "../utils/authentication";
 import { setUser } from "../redux/userSlice";
 import axios from "axios";
-import GameInfoCard from "./GameInfoCard";
+import { GameInfoCard, Loader } from "./";
+import { motion } from "framer-motion";
 
 export default function GameInfo() {
 	const [searchParams] = useSearchParams();
@@ -52,47 +53,61 @@ export default function GameInfo() {
 	};
 
 	return loading ? (
-		<div>Loading...</div>
+		<Loader />
 	) : (
 		<div className="min-h-screen p-4 text-white">
 			<div className="flex mb-4">
-				<button
-					className="flex items-center text-white hover:text-gray-400 transition-all duration-300"
+				<motion.button
+					className="flex items-center text-white hover:text-indigo-400 transition-colors duration-300"
 					onClick={back}
+					whileHover={{ scale: 1.05 }}
+					whileTap={{ scale: 0.95 }}
+					aria-label="Go back"
 				>
 					<HiArrowLeft className="text-2xl mr-2" />
 					<span className="text-lg font-medium">Back</span>
-				</button>
+				</motion.button>
 			</div>
-			<div className="flex gap-2 p-2 bg-gray-900 w-fit m-3 mx-auto rounded-lg">
+			<div className="flex gap-3 bg-gray-900/90 backdrop-blur-lg p-2 rounded-full w-fit m-auto mb-6 shadow-xl border border-gray-700">
 				{["You", "Opponent"].map((value: string, index: number) => (
-					<div
+					<button
 						key={index}
-						className={`px-5 py-1 rounded-lg hover:bg-gray-800 cursor-pointer ${
-							value === selected ? "bg-gray-800" : "bg-gray-600"
+						className={`px-6 py-2 rounded-full font-semibold text-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+							value === selected
+								? "bg-indigo-600 text-white shadow-md shadow-indigo-700/50"
+								: "bg-gray-800 text-gray-300 hover:bg-gray-700"
 						}`}
 						onClick={() => setSelected(value)}
 					>
 						{value}
-					</div>
+					</button>
 				))}
 			</div>
-			<div className="mt-4 text-white">
+			<motion.div
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.5, delay: 0.2 }}
+				className="mt-4 text-white"
+			>
 				{selected === "Opponent" && (
 					<GameInfoCard
 						gameId={gameId}
-						player={gameData.players.find((player: any) => player.user.id !== user.id)}
-                        winner={gameData.winner}
+						player={gameData.players.find(
+							(player: any) => player.user.id !== user.id
+						)}
+						winner={gameData.winner}
 					/>
 				)}
 				{selected === "You" && (
 					<GameInfoCard
 						gameId={gameId}
-						player={gameData.players.find((player: any) => player.user.id === user.id)}
-                        winner={gameData.winner}
+						player={gameData.players.find(
+							(player: any) => player.user.id === user.id
+						)}
+						winner={gameData.winner}
 					/>
 				)}
-			</div>
+			</motion.div>
 		</div>
 	);
 }

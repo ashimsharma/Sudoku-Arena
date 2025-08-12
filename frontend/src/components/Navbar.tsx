@@ -42,7 +42,6 @@ const Navbar = () => {
 					className="text-4xl font-bold tracking-wide text-red-500 cursor-pointer"
 					style={{ fontFamily: "'Bebas Neue', sans-serif" }}
 					onClick={() => navigate("/")}
-					whileHover={{ scale: 1.05 }}
 				>
 					SUDOKU <span className="text-white">ARENA</span>
 				</motion.h1>

@@ -78,7 +78,7 @@ const FriendListModal = ({ setOpenFriendList, gameId, user }: any) => {
 
         {/* Friends List */}
         {!loading && friends.length === 0 && (
-          <p className="text-center text-gray-400 py-10">No friends found 😔</p>
+          <p className="text-center text-gray-400 py-10">No friends found</p>
         )}
 
         {!loading && friends.length > 0 && (

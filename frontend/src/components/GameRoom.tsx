@@ -339,19 +339,19 @@ const GameRoom = () => {
 			<div className="text-center pb-8">
 				{opponent && me && (
 					<button
-						className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 px-6 py-3 rounded-lg text-lg font-bold text-white shadow-lg transition-transform transform hover:scale-105 active:scale-95"
+						className="bg-red-500 hover:bg-red-600 px-6 py-3 rounded-lg text-lg font-bold text-white shadow-lg transition-transform transform hover:scale-105 active:scale-95"
 						onClick={initGame}
 					>
-						🚀 Start Game
+						Start Game
 					</button>
 				)}
 
 				{me && !opponent && type === "creator" && (
 					<button
-						className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 px-6 py-3 rounded-lg text-lg font-bold text-white shadow-lg transition-transform transform hover:scale-105 active:scale-95"
+						className="bg-blue-600 hover:bg-blue-800 px-6 py-3 rounded-lg text-lg font-bold text-white shadow-lg transition-transform transform hover:scale-105 active:scale-95"
 						onClick={() => setOpenFriendList(true)}
 					>
-						📨 Invite Friend
+						Invite Friend
 					</button>
 				)}
 			</div>

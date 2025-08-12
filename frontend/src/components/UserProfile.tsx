@@ -172,7 +172,7 @@ export default function UserProfile() {
 	return loading ? (
 		<Loader />
 	) : (
-		<div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900/95 to-black p-4">
+		<div className="min-h-screen p-4">
 			{/* Back Button */}
 			<div className="w-full flex justify-start mb-6">
 				<motion.button

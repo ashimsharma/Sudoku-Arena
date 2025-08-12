@@ -29,4 +29,7 @@ import FriendListModal from "./FriendListModal";
 import LoaderModal from "./LoaderModal";
 import ErrorMessage from "./ErrorMessage";
 import Loader from "./Loader";
-export {Login, Home, Navbar, Footer, Leaderboard, Game, CreateRoomModal, GameRoom, JoinRoomModal, GameBoardScreen, Keypad, Popup, GameBoard, ButtonPallet, TimerPallet, ProgressBar, ResultModal, Profile, UserGames, GameInfo, GameInfoBoard, UserProfile, FriendRequests, Friends, ReactionBar, ActiveGameCard, Invites, FriendListModal, LoaderModal, ErrorMessage, Loader};
+import GameCard from "./GameCard";
+import GameInfoCard from "./GameInfoCard";
+import AnimatedSudokuBoard from "./AnimatedSudokuBoard";
+export {Login, Home, Navbar, Footer, Leaderboard, Game, CreateRoomModal, GameRoom, JoinRoomModal, GameBoardScreen, Keypad, Popup, GameBoard, ButtonPallet, TimerPallet, ProgressBar, ResultModal, Profile, UserGames, GameInfo, GameInfoBoard, UserProfile, FriendRequests, Friends, ReactionBar, ActiveGameCard, Invites, FriendListModal, LoaderModal, ErrorMessage, Loader, GameCard, GameInfoCard, AnimatedSudokuBoard};

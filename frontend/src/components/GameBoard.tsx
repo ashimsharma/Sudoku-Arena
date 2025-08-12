@@ -101,7 +101,7 @@ const GameBoard = () => {
 			</div>
 			{game?.map((cell: CurrentGameStateData, i: number) => {
 				const baseClass =
-					"border border-black text-center text-black text-2xl p-2 flex justify-center items-center transition-colors duration-300 ease-in-out cursor-pointer select-none";
+					"border border-black text-center text-black text-2xl p-2 flex justify-center items-center transition-colors duration-150 ease-in-out cursor-pointer select-none";
 				const cellClasses = [
 					baseClass,
 					isRowSelected(i) ||
