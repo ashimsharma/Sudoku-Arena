@@ -162,9 +162,9 @@ const Game = () => {
       transition={{ duration: 0.5 }}
     >
       {/* Back Button */}
-      <div className="w-full max-w-4xl flex justify-start mb-6">
+      <div className="w-full flex justify-start mb-6">
         <motion.button
-          className="flex items-center text-white hover:text-gray-400 transition-colors duration-300"
+          className="flex items-center text-white hover:text-indigo-400 transition-colors duration-300"
           onClick={back}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

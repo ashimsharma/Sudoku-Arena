@@ -5,6 +5,8 @@ import checkAuth from "../utils/authentication";
 import { setUser } from "../redux/userSlice";
 import axios from "axios";
 import { HiArrowLeft } from "react-icons/hi";
+import {motion} from "framer-motion";
+import {Loader} from "./";
 
 export default function Friends() {
 	const [friends, setFriends] = useState([]);
@@ -73,81 +75,85 @@ export default function Friends() {
 	};
 
 	return loading ? (
-		<div className="text-white">Loading...</div>
+		<Loader />
 	) : (
-		<div className="p-4 bg-gray-900 min-h-screen">
-			<div className="flex mb-4">
-				<button
-					className="flex items-center text-white hover:text-gray-400 transition-all duration-300"
+		<div className="p-4  min-h-screen">
+			{/* Back Button */}
+			<div className="flex mb-6">
+				<motion.button
+					className="flex items-center text-white hover:text-indigo-400 transition-colors duration-300"
 					onClick={back}
+					whileHover={{ scale: 1.05 }}
+					whileTap={{ scale: 0.95 }}
+					aria-label="Go back"
 				>
 					<HiArrowLeft className="text-2xl mr-2" />
 					<span className="text-lg font-medium">Back</span>
-				</button>
+				</motion.button>
 			</div>
-			<div>
-				{friends.length === 0 && (
-					<p className="text-sm text-gray-100 min-h-screen flex items-center justify-center">
-						Nothing to show here for now.
-					</p>
-				)}
+
+			{/* Empty State */}
+			{friends.length === 0 && (
+				<p className="text-sm text-gray-300 min-h-screen flex items-center justify-center">
+					Nothing to show here for now.
+				</p>
+			)}
+
+			{/* Friends List */}
+			<div className="space-y-4">
 				{friends.length !== 0 &&
-					friends.map((friend: any) => (
-						<div
-							key={friend.id}
-							className="flex items-center justify-between bg-gray-800 p-3 rounded-lg w-2/3 mx-auto hover:bg-gray-700 cursor-pointer"
-							onClick={() =>
-								navigate(
-									`/user/profile?userId=${
-										friend.requester.id !== user?.id
-											? friend.requester.id
-											: friend.receiver.id
-									}`
-								)
-							}
-						>
-							<div className="flex items-center space-x-3">
-								<div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white text-sm font-bold">
-									{(
-										friend.requester.id !== user?.id
-											? friend.requester.avatarUrl
-											: friend.receiver.avatarUrl
-									) ? (
-										<img
-											src={
-												friend.requester.id !== user?.id
-													? friend.requester.avatarUrl
-													: friend.receiver.avatarUrl
-											}
-											alt={
-												friend.requester.id !== user?.id
-													? friend.requester.name
-													: friend.receiver.name
-											}
-											className="w-10 h-10 rounded-full object-cover"
-										/>
-									) : friend.requester.id !== user?.id ? (
-										friend.requester.name[0].toUpperCase()
-									) : (
-										friend.receiver.name[0].toUpperCase()
-									)}
-								</div>
-								<span className="text-white font-medium hover:underline">
-									{friend.requester.id !== user?.id
-										? friend.requester.name
-										: friend.receiver.name}
-								</span>
-							</div>
-							<div className="flex space-x-2">
-								<button
-									className="bg-red-500 text-white text-md px-3 py-1 rounded hover:bg-red-600"
-									onClick={(e) => removeFriend(e, friend.id)}
+					friends.map((friend: any, id: number) => {
+						const isRequester = friend.requester.id !== user?.id;
+						const avatarUrl = isRequester
+							? friend.requester.avatarUrl
+							: friend.receiver.avatarUrl;
+						const name = isRequester
+							? friend.requester.name
+							: friend.receiver.name;
+
+						return (
+							<motion.div
+								key={friend.id}
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ delay: id * 0.05 }}
+								className="w-2/3 mx-auto"
+							>
+								<div
+									className="flex items-center justify-between bg-gray-800/60 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-gray-700 hover:border-indigo-500 hover:bg-gray-800/80 transition-all cursor-pointer"
+									onClick={() =>
+										navigate(`/user/profile?userId=${isRequester ? friend.requester.id : friend.receiver.id}`)
+									}
 								>
-									{removeButton}
-								</button>
-							</div>
-						</div>
-					))}
+									<div className="flex items-center space-x-4">
+										<div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-indigo-500 shadow-md flex items-center justify-center text-white text-lg font-bold bg-gray-700">
+											{avatarUrl ? (
+												<img
+													src={avatarUrl}
+													alt={name}
+													className="w-full h-full object-cover"
+												/>
+											) : (
+												name[0].toUpperCase()
+											)}
+										</div>
+										<span className="text-white font-medium tracking-wide hover:underline">
+											{name}
+										</span>
+									</div>
+
+									<motion.button
+										whileHover={{ scale: 1.05 }}
+										whileTap={{ scale: 0.95 }}
+										onClick={(e) => removeFriend(e, friend.id)}
+										className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-lg shadow-sm transition-colors"
+									>
+										{removeButton}
+									</motion.button>
+								</div>
+							</motion.div>
+						);
+					})}
 			</div>
 		</div>
 	);

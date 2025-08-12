@@ -5,6 +5,8 @@ import { setUser } from "../redux/userSlice";
 import { HiArrowLeft } from "react-icons/hi";
 import axios from "axios";
 import checkAuth from "../utils/authentication";
+import { Loader } from "./";
+import { motion } from "framer-motion";
 
 export default function UserProfile() {
 	const dispatch = useDispatch();
@@ -68,7 +70,7 @@ export default function UserProfile() {
 	}, [updateProfile, userId]);
 
 	const back = () => {
-		console.log(location)
+		console.log(location);
 		if (location?.state?.from) {
 			navigate(location.state.from);
 		} else {
@@ -168,31 +170,51 @@ export default function UserProfile() {
 	};
 
 	return loading ? (
-		<p className="text-white">Loading...</p>
+		<Loader />
 	) : (
-		<div className="min-h-screen bg-gray-900 p-4">
-			<div className="flex mb-4">
-				<button
-					className="flex items-center text-white hover:text-gray-400 transition-all duration-300"
+		<div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900/95 to-black p-4">
+			{/* Back Button */}
+			<div className="w-full flex justify-start mb-6">
+				<motion.button
+					className="flex items-center text-white hover:text-indigo-400 transition-colors duration-300"
 					onClick={back}
+					whileHover={{ scale: 1.05 }}
+					whileTap={{ scale: 0.95 }}
+					aria-label="Go back"
 				>
 					<HiArrowLeft className="text-2xl mr-2" />
 					<span className="text-lg font-medium">Back</span>
-				</button>
+				</motion.button>
 			</div>
-			<div className="max-w-sm mx-auto bg-gray-800 text-white rounded-2xl shadow-xl p-6 space-y-4">
-				<div className="flex justify-center h-44">
+
+			{/* Profile Card */}
+			<motion.div
+				initial={{ opacity: 0, y: 40 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.6, ease: "easeOut" }}
+				className="max-w-sm mx-auto bg-gray-800/70 backdrop-blur-md text-white rounded-3xl shadow-2xl p-6 space-y-6 border border-gray-700"
+			>
+				{/* Avatar */}
+				<motion.div
+					initial={{ scale: 0 }}
+					animate={{ scale: 1 }}
+					transition={{ type: "spring", stiffness: 120, delay: 0.2 }}
+					className="flex justify-center"
+				>
 					<img
 						src={profile.avatarUrl}
 						alt={profile.name}
 						title={profile.name}
-						className="h-15 w-15 object-cover rounded-full"
+						className="h-28 w-28 object-cover rounded-full ring-4 ring-indigo-500 shadow-lg"
 					/>
-				</div>
+				</motion.div>
 
+				{/* Name & Rank */}
 				<div className="text-center">
-					<h2 className="text-2xl font-semibold">{profile.name}</h2>
-					<p className="text-gray-400">
+					<h2 className="text-2xl font-semibold tracking-wide">
+						{profile.name}
+					</h2>
+					<p className="text-gray-400 mt-1">
 						Rank:{" "}
 						<span className="text-yellow-400 font-medium">
 							{profile.rank}
@@ -200,8 +222,9 @@ export default function UserProfile() {
 					</p>
 				</div>
 
+				{/* Stats Overview */}
 				<div className="grid grid-cols-2 gap-4 text-center">
-					<div className="">
+					<div className="bg-gray-900/40 p-3 rounded-xl border border-gray-700">
 						<p className="text-sm text-gray-400">Total Games</p>
 						<p className="text-xl font-bold">
 							{profile.noOfWins +
@@ -209,7 +232,7 @@ export default function UserProfile() {
 								profile.noOfLosses}
 						</p>
 					</div>
-					<div className="">
+					<div className="bg-gray-900/40 p-3 rounded-xl border border-gray-700">
 						<p className="text-sm text-gray-400">Friends</p>
 						<p className="text-xl font-bold">
 							{profile.totalFriends}
@@ -217,70 +240,91 @@ export default function UserProfile() {
 					</div>
 				</div>
 
-				<div className="grid grid-cols-3 gap-4 text-center mt-2">
-					<div>
+				{/* Detailed Stats */}
+				<div className="grid grid-cols-3 gap-4 text-center mt-4">
+					<div className="bg-gray-900/40 p-3 rounded-xl border border-gray-700">
 						<p className="text-sm text-gray-400">Won</p>
 						<p className="text-xl font-bold text-green-400">
 							{profile.noOfWins}
 						</p>
 					</div>
-					<div>
+					<div className="bg-gray-900/40 p-3 rounded-xl border border-gray-700">
 						<p className="text-sm text-gray-400">Draw</p>
 						<p className="text-xl font-bold text-yellow-400">
 							{profile.noOfDraws}
 						</p>
 					</div>
-					<div>
+					<div className="bg-gray-900/40 p-3 rounded-xl border border-gray-700">
 						<p className="text-sm text-gray-400">Lost</p>
 						<p className="text-xl font-bold text-red-400">
 							{profile.noOfLosses}
 						</p>
 					</div>
 				</div>
-				{!friendRequest && (
-					<button
-						className="text-center flex justify-center items-center gap-2 bg-red-500 w-fit px-3 py-1 rounded-lg m-auto cursor-pointer hover:bg-red-600"
-						onClick={addFriend}
-					>
-						{addButton}
-					</button>
-				)}
-				<div className="flex">
+
+				{/* Friend Request Buttons */}
+				<div className="flex justify-center gap-4">
+					{/* Add Friend button container with fixed width */}
+					<div className={`w-24 flex justify-center ${friendRequest && 'hidden'}`}>
+						{!friendRequest && (
+							<motion.button
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="text-center flex justify-center items-center gap-2 bg-red-500 w-full px-3 py-1 rounded-lg cursor-pointer hover:bg-red-600"
+								onClick={addFriend}
+							>
+								{addButton}
+							</motion.button>
+						)}
+					</div>
+
+					{/* Accept and Reject buttons container with fixed width */}
 					{friendRequest && !isFriend && !hasRequested && (
-						<button
-							className="text-center flex justify-center items-center gap-2 bg-green-500 w-fit px-3 py-1 rounded-lg m-auto cursor-pointer hover:bg-green-600"
-							onClick={(e) =>
-								acceptFriendRequest(e, friendRequest?.id)
-							}
-						>
-							{acceptButton}
-						</button>
+						<>
+							<motion.button
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="text-center flex justify-center items-center gap-2 bg-green-500 w-24 px-3 py-1 rounded-lg cursor-pointer hover:bg-green-600"
+								onClick={(e) =>
+									acceptFriendRequest(e, friendRequest?.id)
+								}
+							>
+								{acceptButton}
+							</motion.button>
+
+							<motion.button
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="text-center flex justify-center items-center gap-2 bg-red-500 w-24 px-3 py-1 rounded-lg cursor-pointer hover:bg-red-600"
+								onClick={(e) =>
+									rejectFriendRequest(e, friendRequest?.id)
+								}
+							>
+								{rejectButton}
+							</motion.button>
+						</>
 					)}
-					{friendRequest && !isFriend && !hasRequested && (
-						<button
-							className="text-center flex justify-center items-center gap-2 bg-red-500 w-fit px-3 py-1 rounded-lg m-auto cursor-pointer hover:bg-red-600"
-							onClick={(e) =>
-								rejectFriendRequest(e, friendRequest?.id)
-							}
+
+					{/* Requested text with same width */}
+					{friendRequest && hasRequested && !isFriend && (
+						<div className="w-24 text-center flex justify-center items-center gap-2 bg-red-500 px-3 py-1 rounded-lg m-auto select-none">
+							Requested
+						</div>
+					)}
+
+					{/* Remove Friend button with same width */}
+					{isFriend && (
+						<motion.button
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
+							className="text-center flex justify-center items-center gap-2 bg-red-500 w-24 px-3 py-1 rounded-lg m-auto hover:bg-red-600"
+							onClick={(e) => removeFriend(e, friendRequest?.id)}
 						>
-							{rejectButton}
-						</button>
+							{removeButton}
+						</motion.button>
 					)}
 				</div>
-				{friendRequest && hasRequested && !isFriend && (
-					<button className="text-center flex justify-center items-center gap-2 bg-red-500 w-fit px-3 py-1 rounded-lg m-auto">
-						Requested
-					</button>
-				)}
-				{isFriend && (
-					<button
-						className="text-center flex justify-center items-center gap-2 bg-red-500 w-fit px-3 py-1 rounded-lg m-auto hover:bg-red-600"
-						onClick={(e) => removeFriend(e, friendRequest?.id)}
-					>
-						{removeButton}
-					</button>
-				)}
-			</div>
+			</motion.div>
 		</div>
 	);
 }
