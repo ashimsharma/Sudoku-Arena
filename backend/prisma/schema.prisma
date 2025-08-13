@@ -31,6 +31,9 @@ model User {
   noOfWins   Int  @default(0)
   noOfLosses   Int @default(0)
   noOfDraws   Int @default(0)
+
+  refreshToken String?
+  createdAt   DateTime   @default(now())
 }
 
 enum GameStatus {

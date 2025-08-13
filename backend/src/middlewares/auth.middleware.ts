@@ -4,9 +4,9 @@ import prisma from "../db";
 
 const verifyJWT = async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const token = req.cookies?.jwt;
+		const accessToken = req.cookies?.sudoku_arena_access_token;
 
-		if (!token) {
+		if (!accessToken) {
 			res.status(401).json({
 				statusCode: 401,
 				success: false,
@@ -19,8 +19,8 @@ const verifyJWT = async (req: Request, res: Response, next: NextFunction) => {
 
 		try {
 			decodedToken = jwt.verify(
-				token,
-				process.env.JWT_SECRET as string
+				accessToken,
+				process.env.ACCESS_TOKEN_SECRET as string
 			) as JwtPayload;
 		} catch (error) {
 			decodedToken = undefined;

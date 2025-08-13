@@ -4,13 +4,26 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { RiLogoutBoxRLine } from "react-icons/ri";
+import ErrorMessage from "./ErrorMessage";
 
 const Navbar = () => {
 	const navigate = useNavigate();
 	const [noOfFriendRequests, setNoOfFriendRequests] = useState(0);
 	const [menuOpen, setMenuOpen] = useState(false);
 	const location = useLocation();
+	const [showErrorMessage, setShowErrorMessage] = useState(false);
 
+	const logout = async () => {
+		try {
+			const response = await axios.put(`${import.meta.env.VITE_API_URL}/auth/logout`, {}, {withCredentials: true})
+			if(response){
+				navigate("/login");
+			}
+		} catch (error) {
+			setShowErrorMessage(true)
+		}
+	}
 	useEffect(() => {
 		(async () => {
 			try {
@@ -36,8 +49,10 @@ const Navbar = () => {
 
 	return (
 		<nav className="bg-gray-900 bg-opacity-80 backdrop-blur-md py-4 shadow-lg w-full z-50">
+			<ErrorMessage message="Logout Failed" visible={showErrorMessage} onClose={() => setShowErrorMessage(false)}/>
 			<div className="container mx-auto flex justify-between items-center px-6">
 				{/* Logo */}
+				
 				<motion.h1
 					className="text-4xl font-bold tracking-wide text-red-500 cursor-pointer"
 					style={{ fontFamily: "'Bebas Neue', sans-serif" }}
@@ -91,6 +106,14 @@ const Navbar = () => {
 						whileHover={{ scale: 1.1 }}
 					>
 						<FaCircleUser size={28} />
+					</motion.div>
+
+					<motion.div
+						className="text-white hover:text-red-500 cursor-pointer"
+						onClick={logout}
+						whileHover={{ scale: 1.1 }}
+					>
+						<RiLogoutBoxRLine size={28} />
 					</motion.div>
 				</div>
 
@@ -157,6 +180,13 @@ const Navbar = () => {
 						}}
 					>
 						Profile
+					</div>
+
+					<div
+						className="text-white hover:text-red-500 cursor-pointer"
+						onClick={logout}
+					>
+						Logout
 					</div>
 				</motion.div>
 			)}

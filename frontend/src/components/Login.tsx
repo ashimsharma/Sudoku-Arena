@@ -72,9 +72,9 @@ export default function Login() {
 				ref={parentRef}
 			>
 				{displayLogo ? (
-					<>
+					<div className="flex-col items-center justify-center">
 						<motion.h1
-							className="text-4xl font-bold tracking-wide text-red-500 cursor-pointer"
+							className="text-4xl font-bold tracking-wide text-red-500 cursor-pointer text-center"
 							initial={{ scale: 1.3, opacity: 0 }}
 							animate={{ scale: 1, opacity: 1 }}
 							transition={{ duration: 0.7, delay: 0.2 }}
@@ -89,9 +89,9 @@ export default function Login() {
 							style={{ fontFamily: "'Bebas Neue', sans-serif" }}
 							className="text-gray-200"
 						>
-							Compete with millions of users around the world!!
+							Compete with millions of players around the world!!
 						</motion.p>
-					</>
+					</div>
 				) : (
 					<>
 						<motion.span

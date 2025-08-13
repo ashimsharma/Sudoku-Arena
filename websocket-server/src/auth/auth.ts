@@ -13,7 +13,7 @@ export const authenticate = async (request: IncomingMessage) => {
 
 	const cookies = parseCookies(cookieHeader);
 
-	const token = cookies?.jwt;
+	const token = cookies?.sudoku_arena_access_token;
 
 	if (!token) {
 		return { success: false, message: "Token is missing" };
@@ -22,7 +22,7 @@ export const authenticate = async (request: IncomingMessage) => {
 	try {
 		const decoded = jwt.verify(
 			token as string,
-			process.env.JWT_SECRET as string
+			process.env.ACCESS_TOKEN_SECRET as string
 		) as DecodedToken;
 
 		const user = await prisma.user.findFirst({
