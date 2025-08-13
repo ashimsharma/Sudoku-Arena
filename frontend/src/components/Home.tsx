@@ -84,8 +84,6 @@ export default function Home() {
 						New Game
 					</motion.button>
 					<div className="flex justify-between gap-8 mt-6 text-gray-400">
-						{/* <FaCircleUser size={32} />
-            <FaCircleUser size={32} /> */}
 						<AnimatedSudokuBoard />
 					</div>
 				</motion.div>

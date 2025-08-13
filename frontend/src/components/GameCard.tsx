@@ -1,6 +1,7 @@
 import { FaCircleUser } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 export default function GameCard({
 	id,
@@ -29,7 +30,7 @@ export default function GameCard({
 	}
 
 	return (
-		<div className="bg-gray-800 text-white rounded-xl shadow-md p-4 flex items-center space-x-6 max-w-4xl mx-auto m-4 hover:bg-gray-700 cursor-pointer" key={id} onClick={() => navigate(`/profile/all-games/game?gameId=${id}`)}>
+		<motion.div initial={{opacity: 0, y: 20}} animate={{opacity: 1, y: 0}} transition={{duration: 0.4}} className="bg-gray-800 text-white rounded-xl shadow-md p-4 flex items-center space-x-6 max-w-4xl mx-auto m-4 hover:bg-gray-700 cursor-pointer" key={id} onClick={() => navigate(`/profile/all-games/game?gameId=${id}`)}>
 			<div className="p-2">
 				<p className="text-gray-100 text-sm text-center mb-1">Winner</p>
 
@@ -97,6 +98,6 @@ export default function GameCard({
 					{draw !== true && (winner?.id === user.id ? "WON" : "LOST")}
 				</span>
 			</div>
-		</div>
+		</motion.div>
 	);
 }

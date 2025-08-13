@@ -292,6 +292,7 @@ const AnimatedSudokuBoard: React.FC = () => {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5, delay: 1.4 }}
 						style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+						className="text-gray-200"
 					>Compete with millions of users around the world!!</motion.p>
 				</motion.div>
 			)}
