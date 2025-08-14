@@ -27,7 +27,7 @@ export const authenticate = async (request: IncomingMessage) => {
 
 		const user = await prisma.user.findFirst({
 			where: {
-				id: decoded.id,
+				id: decoded?.id,
 			},
 		});
 
@@ -38,7 +38,7 @@ export const authenticate = async (request: IncomingMessage) => {
 			};
 		}
 
-		return { authenticated: true, id: decoded.id };
+		return { authenticated: true, id: user?.id };
 	} catch (error) {
 		return { authenticated: false, message: "Invalid or expired token" };
 	}

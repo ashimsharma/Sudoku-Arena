@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { HiArrowLeft } from "react-icons/hi";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CreateRoomModal, JoinRoomModal, Loader } from "./";
+import { CreateRoomModal, JoinRoomModal, Loader, ErrorMessage } from "./";
 import { closeSocket, connectSocket, getSocket } from "../config/socket.config";
 import { useDispatch, useSelector } from "react-redux";
 import { setGameId, setMe, setMeType, setOpponent } from "../redux/gameSlice";
@@ -20,6 +20,8 @@ const Game = () => {
 	const [joinRoomModalOpened, setJoinRoomModalOpened] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const me = useSelector((state: any) => state.user).user;
+
+	const [error, setError] = useState({ visible: false, message: "" });
 
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -74,6 +76,10 @@ const Game = () => {
 		})();
 	}, []);
 
+	const handleWebsocketError = () => {
+		setError({ visible: true, message: "Failed to connect to the server" });
+	};
+
 	useEffect(() => {
 		if (localStorage.getItem("activeGameId")) {
 			navigate("/game/game-room");
@@ -92,7 +98,7 @@ const Game = () => {
 
 				socket?.addEventListener("message", handleMessages);
 			} catch (error) {
-				console.log(error);
+				handleWebsocketError();
 			}
 
 			return () => {
@@ -157,11 +163,16 @@ const Game = () => {
 		);
 	};
 
+	const onErrorClose = () => {
+		setError({visible: false, message: ""})
+	}
+
 	if (loading) return <Loader />;
 
 	return (
 		<div className="min-h-screen p-4">
 			{/* Back Button */}
+			{<ErrorMessage visible={error.visible} message={error.message} onClose={onErrorClose}/>}
 			<div className="w-full flex justify-start mb-6">
 				<motion.button
 					className="flex items-center text-white hover:text-indigo-400 transition-colors duration-300"
@@ -176,7 +187,7 @@ const Game = () => {
 			</div>
 
 			<motion.div
-      className="flex flex-col items-center gap-6 p-6 w-full"
+				className="flex flex-col items-center gap-6 p-6 w-full"
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.5 }}

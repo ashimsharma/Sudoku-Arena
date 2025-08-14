@@ -117,7 +117,6 @@ export class Game {
 		};
 
 		this.getCreator(connectionUserIds.get(creatingPlayer));
-
 		// Delete it from the global map after creating the game user.
 		connectionUserIds.delete(creatingPlayer);
 

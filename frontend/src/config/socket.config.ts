@@ -9,7 +9,7 @@ export const connectSocket = (): Promise<WebSocket> => {
 		if (socket && socket.readyState === WebSocket.CONNECTING) {
 			socket.addEventListener("open", () => resolve(socket!));
 			socket.addEventListener("error", () =>
-				reject(new Error("WebSocket connection error"))
+				reject({type: "error", message: "WebSocket connection error"})
 			);
 			return;
 		}
@@ -22,23 +22,20 @@ export const connectSocket = (): Promise<WebSocket> => {
 			socket = new WebSocket(import.meta.env.VITE_WS_URL);
 
 			socket.addEventListener("open", () => {
-				console.log("WebSocket connected");
 				resolve(socket!);
 			});
 
 			socket.addEventListener("error", (e) => {
-				console.error("WebSocket error", e);
 				socket = null;
-				reject(new Error("Connection Failed"));
+				reject({type: "error", messsage:"Connection Failed"});
 			});
 
 			socket.addEventListener("close", () => {
-				console.log("WebSocket closed");
 				socket = null;
 			});
 		} catch (error) {
 			socket = null;
-			reject(new Error("Failed to create WebSocket"));
+			reject({type: "error", message: "Failed to create WebSocket"});
 		}
 	});
 };

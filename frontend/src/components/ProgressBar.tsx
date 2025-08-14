@@ -1,38 +1,60 @@
-import { useContext } from "react";
+import { useContext} from "react";
 import { useSelector } from "react-redux";
 import { GameContext } from "./GameBoardScreen";
 
-export default function ProgressBar(){
-    const me = useSelector((state: any) => state.game).me;
-	const opponent = useSelector((state: any) => state.game).opponent;
-    const meProgress = useSelector((state: any) => state.game).meProgress;
-	const opponentProgress = useSelector((state: any) => state.game).opponentProgress;
-	const opponentMistakes = useSelector((state: any) => state.game).opponentMistakes;
-    const {opponentReaction, showOpponentReaction} = useContext(GameContext)!;
+export default function ProgressBar() {
+	const { me, opponent, meProgress, opponentProgress, opponentMistakes } = useSelector(
+		(state: any) => state.game
+	);
+	const { opponentReaction, showOpponentReaction } = useContext(GameContext)!;
 
-    return (
-        <div className="p-6 bg-gray-900 flex flex-col items-center justify-center space-y-4 w-full rounded-xl">
-            <h1 className="text-3xl font-bold text-left">GAME PROGRESS</h1>
-            <div className="w-full bg-slate-800 shadow-2xl p-4 rounded-lg">
-                <div className="h-2 bg-gray-600 rounded-full overflow-hidden mb-2">
-                    <div
-                        className="h-full bg-green-400 transition-all duration-500 ease-out"
-                        style={{ width: `${meProgress}%` }}
-                    ></div>
-                </div>
-                <p className="text-green-400">Your Progress: {`${meProgress}%`}</p>
-            </div>
-            <div className="w-full bg-slate-800 shadow-2xl p-4 rounded-lg relative">
-                <div className="h-2 bg-gray-600 rounded-full overflow-hidden mb-2">
-                    <div
-                        className="h-full bg-yellow-400 transition-all duration-300 ease-out"
-                        style={{ width: `${opponentProgress}%` }}
-                    ></div>
-                </div>
-                {showOpponentReaction && <div className="text-3xl left-3/4 absolute animate-drop-reverse">{opponentReaction.emoji}</div>}
-                <p className="text-yellow-400">{(opponent?.name.length < 5) ? opponent?.name : `${opponent?.name.split(' ')[0]}`}'s Progress: {`${opponentProgress}%`}</p>
-                <p className="text-gray-300 text-sm">Mistakes: {opponentMistakes} / 5</p>
-            </div>
-        </div>
-    )
+
+	return (
+		<div className="p-6 bg-gray-900 rounded-2xl shadow-xl flex flex-col items-center w-full space-y-6">
+			<h1 className="text-2xl font-bold text-white tracking-wide">Game Progress</h1>
+
+			{/* Your Progress */}
+			<div className="w-full bg-gray-800 rounded-xl shadow-lg p-5 space-y-3">
+				<div className="relative h-3 bg-gray-700 rounded-full overflow-hidden">
+					<div
+						className="absolute left-0 top-0 h-full bg-gradient-to-r from-green-400 to-green-500"
+						style={{ width: `${meProgress}%` }}
+					/>
+				</div>
+				<p className="text-green-400 font-medium">
+					Your Progress: <span className="text-white">{meProgress}%</span>
+				</p>
+			</div>
+
+			{/* Opponent Progress */}
+			<div className="w-full bg-gray-800 rounded-xl shadow-lg p-5 space-y-3 relative">
+				<div className="relative h-3 bg-gray-700 rounded-full overflow-hidden">
+					<div
+						className="absolute left-0 top-0 h-full bg-gradient-to-r from-yellow-400 to-yellow-500"
+						style={{ width: `${opponentProgress}%` }}
+					/>
+				</div>
+
+				{/* Opponent Reaction */}
+				{showOpponentReaction && (
+					<div
+						className="absolute text-3xl top-[-2rem] right-4"
+					>
+						{opponentReaction.emoji}
+					</div>
+				)}
+
+				<p className="text-yellow-400 font-medium">
+					{opponent?.name.length < 5
+						? opponent?.name
+						: opponent?.name.split(" ")[0]}
+					&apos;s Progress: <span className="text-white">{opponentProgress}%</span>
+				</p>
+				<p className="text-gray-400 text-sm">
+					Mistakes:{" "}
+					<span className="text-red-400 font-semibold">{opponentMistakes}</span> / 5
+				</p>
+			</div>
+		</div>
+	);
 }
