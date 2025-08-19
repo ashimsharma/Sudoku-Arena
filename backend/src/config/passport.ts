@@ -27,7 +27,6 @@ passport.use(
 			}
 
 			try {
-				console.log(profile.emails?.[0].value);
 				let user = await prisma.user.findUnique({
 					where: { email: profile.emails?.[0].value },
 				});
