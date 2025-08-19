@@ -26,7 +26,7 @@ const verifyJWT = async (req: Request, res: Response, next: NextFunction) => {
 			decodedToken = undefined;
 		}
 
-		if (!decodedToken) {
+		if (!decodedToken?.id) {
 			res.status(401).json({
 				statusCode: 401,
 				success: false,

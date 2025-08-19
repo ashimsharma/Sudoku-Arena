@@ -486,7 +486,14 @@ async function getActiveGames(req: Request, res: Response) {
 				createdAt: {
 					gte: oneHourAgo,
 				},
-				status: GameStatus.ACTIVE,
+				OR: [
+					{
+						status: GameStatus.ACTIVE,
+					},
+					{
+						status: GameStatus.MAKING,
+					},
+				],
 			},
 			select: {
 				id: true,
@@ -531,41 +538,54 @@ async function getActiveGames(req: Request, res: Response) {
 async function exitGame(req: Request, res: Response) {
 	try {
 		const user: any = req.user;
-		const opponentId = req.body.opponentId;
+		const opponentId = req.body?.opponentId;
 		const gameId = req.body.gameId;
 
-		const updateGame = await prisma.game.update({
-			where: {
-				id: gameId,
-			},
-			data: {
-				winnerId: opponentId,
-				status: GameStatus.COMPLETED,
-				draw: false,
-			},
-		});
-
-		const updateUser = await prisma.user.update({
-			where: {
-				id: user?.id,
-			},
-			data: {
-				noOfLosses: {
-					increment: 1,
+		if (opponentId) {
+			const updateGame = await prisma.game.update({
+				where: {
+					id: gameId,
 				},
-			},
-		});
-
-		const updateOpponent = await prisma.user.update({
-			where: {
-				id: opponentId,
-			},
-			data: {
-				noOfWins: {
-					increment: 1,
+				data: {
+					winnerId: opponentId,
+					status: GameStatus.COMPLETED,
+					draw: false,
 				},
-			},
-		});
+			});
+
+			const updateUser = await prisma.user.update({
+				where: {
+					id: user?.id,
+				},
+				data: {
+					noOfLosses: {
+						increment: 1,
+					},
+				},
+			});
+
+			const updateOpponent = await prisma.user.update({
+				where: {
+					id: opponentId,
+				},
+				data: {
+					noOfWins: {
+						increment: 1,
+					},
+				},
+			});
+		} else {
+			const updateGame = await prisma.game.update({
+				where: {
+					id: gameId,
+				},
+				data: {
+					winnerId: null,
+					status: GameStatus.ENDED,
+					draw: false,
+				},
+			});
+		}
 
 		res.status(200).json({
 			statusCode: 200,
@@ -698,7 +718,7 @@ async function acceptInvite(req: Request, res: Response) {
 
 		res.status(200).json({
 			statusCode: 200,
-			data: {gameId: inviteAccepted.gameId},
+			data: { gameId: inviteAccepted.gameId },
 			success: true,
 			message: "Invite Accepted.",
 		});

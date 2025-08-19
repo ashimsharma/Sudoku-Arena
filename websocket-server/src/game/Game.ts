@@ -172,17 +172,6 @@ export class Game {
 				},
 			});
 
-			await prisma.game.update(
-				{
-					where: {
-						id: this.gameId
-					},
-					data: {
-						status: GameStatus.ACTIVE
-					}
-				}
-			);
-
 			this.creator?.socket.send(
 				JSON.stringify({
 					type: OPPONENT_JOINED,
@@ -338,6 +327,8 @@ export class Game {
 		if (this.gameStarted) {
 			this.startTime = Date.now() + 7000;
 
+			this.setGameStatusToActive(gameId);
+
 			this.creator?.socket.send(
 				JSON.stringify({
 					type: BOTH_USERS_GAME_INITIATED,
@@ -362,6 +353,23 @@ export class Game {
 					},
 				})
 			);
+		}
+	}
+
+	async setGameStatusToActive(gameId: string){
+		try {
+			await prisma.game.update(
+				{
+					where: {
+						id: gameId
+					},
+					data: {
+						status: GameStatus.ACTIVE
+					}
+				}
+			)
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -1035,7 +1043,7 @@ export class Game {
 			}
 		);
 
-		if(gameStatus?.status === GameStatus.COMPLETED){
+		if(gameStatus?.status === GameStatus.COMPLETED || gameStatus?.status === GameStatus.ENDED){
 			this.gameEnded = true;
 			socket.send(
 				JSON.stringify(
@@ -1112,7 +1120,7 @@ export class Game {
 			}
 		);
 
-		if(gameStatus?.status === GameStatus.COMPLETED){
+		if(gameStatus?.status === GameStatus.COMPLETED || gameStatus?.status === GameStatus.ENDED){
 			this.gameEnded = true;
 			socket.send(
 				JSON.stringify(

@@ -219,7 +219,7 @@ async function refreshAccessToken(req: Request, res: Response) {
 			return;
 		}
 
-		const payload = { id: (req.user as User)?.id };
+		const payload = { id: (user as User)?.id };
 
 		const accessTokenOptions: CookieOptions = {
 			httpOnly: true,

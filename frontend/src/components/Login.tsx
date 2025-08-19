@@ -144,9 +144,6 @@ export default function Login() {
 				className="relative z-10 w-full max-w-md p-8 sm:p-12 bg-gray-800 rounded-2xl shadow-2xl border border-gray-700"
 			>
 				<header className="mb-6 text-center">
-					<h1 className="text-3xl font-bold text-white">
-						SUDOKU ARENA
-					</h1>
 					<p className="mt-2 text-sm text-gray-300">
 						Sign in to compete with other users in real-time Sudoku
 						games.

@@ -10,6 +10,7 @@ import {
 	JOIN_ROOM,
 	ROOM_CREATED,
 	ROOM_JOINED,
+	GAME_NOT_FOUND
 } from "../messages/messages";
 import { setUser } from "../redux/userSlice";
 import checkAuth from "../utils/authentication";
@@ -54,6 +55,9 @@ const Game = () => {
 				navigate("/game/game-room", { state: { from: "/game" } });
 				break;
 			}
+			case GAME_NOT_FOUND:
+				setError({visible: true, message: "Game Not Found!"})
+				break;
 		}
 	};
 

@@ -17,6 +17,7 @@ import { createServer } from "http";
 import "dotenv/config";
 import { authenticate } from "./auth/auth";
 import { connectionUserIds } from "./store/connections";
+import { prisma } from "./db";
 
 // Initialize WebSocket Server first
 const wss = new WebSocketServer({ noServer: true });
@@ -43,6 +44,23 @@ server.on("upgrade", async (request, socket, head) => {
 	});
 });
 
+const findGameInDB = async (roomId: string) => {
+	try {
+		const game = await prisma.game.findFirst({
+			where: {
+				id: roomId
+			}
+		})
+
+		if(!game){
+			return null
+		}
+
+		return game;
+	} catch (error) {
+		console.log(error);
+	}
+}
 wss.on("connection", function connection(ws, req) {
 	ws.send(
 		JSON.stringify({
@@ -52,7 +70,7 @@ wss.on("connection", function connection(ws, req) {
 	);
 
 	// Handle incoming messages from WebSocket clients
-	ws.on("message", (data: string) => {
+	ws.on("message", async (data: string) => {
 		try {
 			const obj = JSON.parse(data);
 			const { type, params } = obj;
@@ -67,6 +85,7 @@ wss.on("connection", function connection(ws, req) {
 					if (foundGame) {
 						foundGame.joinGame(ws); // Add the player to the game
 					} else {
+						await findGameInDB(params.roomId);
 						ws.send(JSON.stringify({ type: GAME_NOT_FOUND }));
 					}
 					break;
@@ -75,6 +94,7 @@ wss.on("connection", function connection(ws, req) {
 					if (startedGame) {
 						startedGame.initGame(params.roomId, ws);
 					} else {
+						await findGameInDB(params.roomId);
 						ws.send(JSON.stringify({ type: GAME_NOT_FOUND }));
 					}
 					break;
@@ -89,6 +109,7 @@ wss.on("connection", function connection(ws, req) {
 						);
 					}
 					else {
+						await findGameInDB(params.roomId);
 						ws.send(JSON.stringify({type: GAME_NOT_FOUND}));
 					}
 					break;
@@ -98,6 +119,7 @@ wss.on("connection", function connection(ws, req) {
 						clearCellGame.clearValue(params.userId, params.index);
 					}
 					else{
+						await findGameInDB(params.roomId);
 						ws.send(JSON.stringify({type: GAME_NOT_FOUND}))
 					}
 					break;
@@ -107,6 +129,7 @@ wss.on("connection", function connection(ws, req) {
 						timerEndedGame.endTimer(params.userId);
 					}
 					else {
+						await findGameInDB(params.roomId);
 						ws.send(JSON.stringify({type: GAME_NOT_FOUND}));
 					}
 					break;
@@ -116,6 +139,7 @@ wss.on("connection", function connection(ws, req) {
 						reactedGame.sendReaction(params.userId, params.reactionId);
 					}
 					else{
+						await findGameInDB(params.roomId);
 						ws.send(JSON.stringify({type: GAME_NOT_FOUND}));
 					}
 					break;
@@ -126,6 +150,7 @@ wss.on("connection", function connection(ws, req) {
 							foundGame.fetchGameRoomData(ws);
 						}
 						else{
+							await findGameInDB(params.roomId);
 							ws.send(JSON.stringify({type: GAME_NOT_FOUND}));
 						}
 					} else if (params.page === "game_board_screen") {
@@ -134,6 +159,7 @@ wss.on("connection", function connection(ws, req) {
 							foundGame.fetchGameBoardScreenData(ws);
 						}
 						else {
+							await findGameInDB(params.roomId);
 							ws.send(JSON.stringify({type: GAME_NOT_FOUND}));
 						}
 					}

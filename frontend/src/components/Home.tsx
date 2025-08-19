@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import checkAuth from "../utils/authentication";
 import { useDispatch } from "react-redux";
 import { setUser } from "../redux/userSlice";
-import { FaCircleUser } from "react-icons/fa6";
 import axios from "axios";
 import { ActiveGameCard, Invites, Loader, AnimatedSudokuBoard } from "./";
 import { motion } from "framer-motion";

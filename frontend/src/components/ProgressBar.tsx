@@ -1,6 +1,7 @@
 import { useContext} from "react";
 import { useSelector } from "react-redux";
 import { GameContext } from "./GameBoardScreen";
+import {animate, motion} from "framer-motion";
 
 export default function ProgressBar() {
 	const { me, opponent, meProgress, opponentProgress, opponentMistakes } = useSelector(
@@ -37,11 +38,14 @@ export default function ProgressBar() {
 
 				{/* Opponent Reaction */}
 				{showOpponentReaction && (
-					<div
-						className="absolute text-3xl top-[-2rem] right-4"
+					<motion.div
+						initial={{y: 0}}
+						animate={{y: -100}}
+						transition={{duration: 0.3, delay: 0.5}}
+						className="absolute text-3xl top-[-0.3rem] right-4"
 					>
 						{opponentReaction.emoji}
-					</div>
+					</motion.div>
 				)}
 
 				<p className="text-yellow-400 font-medium">
